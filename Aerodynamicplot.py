@@ -11,9 +11,6 @@ import matplotlib.pyplot as plt
 from matplotlib import cm
 import numpy as np
 
-#Not allowed in final code, but good enough for quick calculations
-from scipy.integrate import simps
-
 #setting up the plot
 fig = plt.figure()
 ax = fig.gca(projection='3d')
@@ -62,14 +59,34 @@ for i in np.arange(0,Nz):
     zi = -0.5*(Ca/2*(1-np.cos(thetaz[i]))+Ca/2*(1-np.cos(thetaz[i+1])))
     zarray = np.append(zarray,zi) 
 
-#Plotting the graph
-x,y = np.meshgrid(xarray,zarray)
-ax.set_xlabel('Spanwise [m]')
-ax.set_ylabel('Chordwise [m]')
-ax.set_zlabel('Aerodynamic load [kN/m²]')
-
-surf = ax.plot_surface(x, y, datalist, cmap=cm.coolwarm,
-                       linewidth=0, antialiased=False)
+#Interpolation
+for z in range(81):
+    #Complete spline derivative conditions
+    df0 = -(datalist[z,1] - datalist[z,0])/(zarray[1] - zarray[0]);
+    dfn = -(datalist[z,40] - datalist[z,39])/(zarray[40] - zarray[39]);
+    
+    # contructing the linalg equation Az=d to solve for z
+    d = np.array([]);
+    h = np.array([]);
+    A = np.zeros((41,41));
+    # finding the step sizes and making A
+    for x in range(40):
+            h = np.append(h, zarray[x+1]-zarray[x]);
+            A[x:,x:] = h[x];
+    A[0,0] = 2*h[0];
+    A[40,40] = 2*h[40];
+    # finding d
+    for x in range(41):
+        if x == 0:
+            d = np.append(d, 6/h[x]*(datalist[z,1]-datalist[z,0] - 6*df0));
+        else:
+            if x == 40:
+                d = np.append(d, 6*dfn - 6/h[x]*(datalist[z,40]-datalist[z,39]));
+            else:
+                d = np.append(d, 6/h[x+1]*(datalist[z,x+1]-datalist[z,x] - 6/h[x]*(datalist[z,x]-datalist[z,x-1])));
+                A[x,x] = 2*(h[x-1] + h[x]);
+    # solving the equation
+    
 
 #Calculating the mean pressure location
 dataT = np.transpose(datalist)
