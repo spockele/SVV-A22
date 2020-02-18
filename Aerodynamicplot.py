@@ -68,24 +68,32 @@ for z in range(81):
     # contructing the linalg equation Az=d to solve for z
     d = np.array([]);
     h = np.array([]);
-    A = np.zeros((41,41));
+    A = np.zeros((40,40));
+    s = np.zeros((41, 4))
     # finding the step sizes and making A
     for x in range(40):
             h = np.append(h, zarray[x+1]-zarray[x]);
             A[x:,x:] = h[x];
     A[0,0] = 2*h[0];
-    A[40,40] = 2*h[40];
+    A[39,39] = 2*h[39];
+    # A note about h and A (which is constructed from h values). h is the step, so for
+    # n given nodes/knots there are n-1 steps, and so h[0] is the first step, from x0 to x1,
+    # while h[39] is the final step, from x39 to x40.
+    
     # finding d
     for x in range(41):
         if x == 0:
             d = np.append(d, 6/h[x]*(datalist[z,1]-datalist[z,0] - 6*df0));
         else:
             if x == 40:
-                d = np.append(d, 6*dfn - 6/h[x]*(datalist[z,40]-datalist[z,39]));
+                d = np.append(d, 6*dfn - 6/h[x-1]*(datalist[z,40]-datalist[z,39]));
             else:
-                d = np.append(d, 6/h[x+1]*(datalist[z,x+1]-datalist[z,x] - 6/h[x]*(datalist[z,x]-datalist[z,x-1])));
-                A[x,x] = 2*(h[x-1] + h[x]);
+                d = np.append(d, 6/h[x]*(datalist[z,x+1]-datalist[z,x] - 6/h[x-1]*(datalist[z,x]-datalist[z,x-1])));
+                A[x-1,x-1] = 2*(h[x-1] + h[x]);
     # solving the equation
+    Mi = np.linalg.solve(A,d);
+    for x in range(40):
+        
     
 
 #Calculating the mean pressure location
