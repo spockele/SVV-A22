@@ -4,8 +4,6 @@ Created on Wed Feb 19 09:04:15 2020
 
 @author: Mohammad
 """
-import numpy as np
-
 # Analytic integration for a given polynomial
 class Polynomial:
     
@@ -27,16 +25,16 @@ class Polynomial:
             integr_coeffs.append(0.0)
             self.coefficients = integr_coeffs
             self.order()
-        print('Polynomial of Degree', self.degree)
-        print('Polynomial given by', self.coefficients)
+        #print('Polynomial of Degree', self.degree)
+        #print('Polynomial given by', self.coefficients)
 
     
     def definite_integral(self, a, b, integrals):
         self.integrated(integrals)
         value = 0
         for i in range(self.degree):
-            value += self.coefficients[i]*(b^(self.degree-i) - a^(self.degree-i))
-        print('Value of integral on (', a, ',', b, ') is', value)
+            value += self.coefficients[i]*(b**(self.degree-i) - a**(self.degree-i))
+        #print('Value of integral on (', a, ',', b, ') is', value)
         return value
     
 p = Polynomial(1)
