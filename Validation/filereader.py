@@ -7,6 +7,31 @@ import mpl_toolkits.mplot3d as axes3d
 import numpy as np
 
 
+class Element():
+    def __init__(self, num, nodes, node_dct):
+        self.num = num
+        self.nodes = nodes
+
+        self.corners = []
+        for node in nodes:
+            self.corners.append(node_dct[node])
+
+        self.corners = self.corners[:-2] + [self.corners[-1]] + [self.corners[-2]]
+
+        self.xs, self.ys, self.zs = np.zeros((2, 2)), np.zeros((2, 2)), np.zeros((2, 2))
+        for i, corner in enumerate(self.corners):
+            self.xs[i % 2, i // 2], self.ys[i % 2, i // 2], self.zs[i % 2, i // 2] = corner[0], corner[1], corner[2]
+
+    def __repr__(self):
+        return f'Element: nodes: {self.nodes}\ncorners: {self.corners}\n'
+
+    def __str__(self):
+        return f'Element: nodes: {self.nodes}, corners: {self.corners}'
+
+    def plot_self(self, ax):
+        ax.plot_wireframe(self.xs, self.zs, self.ys)
+
+
 def read_inp():
     """
     Reads the Abaqus input file
@@ -15,135 +40,70 @@ def read_inp():
     path = "B737.inp"
     with open(path) as f:
         nodes = False
-        data_opt = {}
+        elements = False
+        s = False
+        node_dct = {}
+        elem_lst = []
 
         for line in f:
-            if line == "*Element, type=S4R\n":
+            if line == "*Nset, nset=Skin\n":
+                elements = False
+                s = False
                 break
 
-            if nodes:
+            if line == "*Element, type=S4R\n":
+                nodes = False
+                elements = True
+                s = False
+
+            if line == "*Node\n":
+                nodes = True
+                s = False
+
+            if elements and s:
+                data_line = line.strip("\n").replace(' ', '')
+                data_line = data_line.split(',')
+                for i, data_pt in enumerate(data_line):
+                    data_line[i] = int(data_pt)
+
+                elem_lst.append(Element(data_line[0], data_line[1:], node_dct))
+
+            if nodes and s:
                 data_line = line.strip("\n").replace(' ', '')
                 data_line = data_line.split(",")
                 for i, data_pt in enumerate(data_line):
                     data_line[i] = float(data_pt) if i > 0 else int(data_pt)
 
-                data_opt[data_line[0]] = data_line[1:]
+                node_dct[data_line[0]] = tuple(data_line[1:])
 
-            if line == "*Node\n":
-                nodes = True
+            s = True
 
-    return data_opt
+    return node_dct, elem_lst
 
 
-def plot_aileron(node_dict: dict):
-    """
-    Plot the node coordinates of the inp file
-    :param node_dict: the return from read_inp()
-    """
-    def get_spar(x, y, z, n, sort=False):
-        c = np.where(z == 0)
-        xsp, ysp, zsp, nsp = x[c], y[c], z[c], n[c]
+def read_rpt():
+    path = "B737_working_copy.rpt"
+    with open(path) as f:
+        case, tpe = False, False
+        for line in f:
+            if line == "\n":
+                case, tpe = False, False
 
-        spar = {}
-        for i, nd in enumerate(nsp):
-            spar[nd] = (xsp[i], ysp[i], zsp[i])
+            if case and tpe:
+                print(line)
 
-        if sort:
-            zsort = np.argsort(zsp)
-            xsp, ysp, zsp, nsp = xsp[zsort], ysp[zsort], zsp[zsort], nsp[zsort]
-            xsort = np.argsort(xsp)
-            xsp, ysp, zsp, nsp = xsp[xsort], ysp[xsort], zsp[xsort], nsp[xsort]
+            if "Step" in line:
+                case, tpe = line.strip("Step: ").split(", ")
 
-        return xsp, ysp, zsp, nsp, spar
-
-    def get_top(x, y, z, n, sort=False):
-        c = np.where(y >= -1.05331139e-08)
-        xtp, ytp, ztp, ntp = x[c], y[c], z[c], n[c]
-
-        _, ysp, _, nsp, _ = get_spar(x, y, z, n)
-        nsp = nsp[np.where(ysp != max(ysp))]
-        c = np.where(np.isin(ntp, nsp))
-        xtp, ytp, ztp, ntp = np.delete(xtp, c), np.delete(ytp, c), np.delete(ztp, c), np.delete(ntp, c)
-
-        top = {}
-        for i, nd in enumerate(ntp):
-            top[nd] = (xtp[i], ytp[i], ztp[i])
-
-        if sort:
-            xsort = np.argsort(xtp)
-            xtp, ytp = xtp[xsort], ytp[xsort]
-            zsort = np.argsort(ztp)
-            ztp, ytp = ztp[zsort], ytp[zsort]
-
-        return xtp, ytp, ztp, ntp, top
-
-    def get_bottom(x, y, z, n):
-        c = np.where(y <= 0)
-        xbp, ybp, zbp, nbp = x[c], y[c], z[c], n[c]
-
-        _, ysp, _, nsp, _ = get_spar(x, y, z, n)
-        nsp = nsp[np.where(ysp != min(ysp))]
-        c = np.where(np.isin(nbp, nsp))
-        xbp, ybp, zbp, nbp = np.delete(xbp, c), np.delete(ybp, c), np.delete(zbp, c), np.delete(nbp, c)
-
-        bottom = {}
-        for i, nd in enumerate(nbp):
-            bottom[nd] = (xbp[i], ybp[i], zbp[i])
-
-        return xbp, ybp, zbp, nbp, bottom
-
-    def get_nodes(nodes):
-        x = np.zeros((len(nodes),))
-        y = np.zeros((len(nodes),))
-        z = np.zeros((len(nodes),))
-        n = np.zeros((len(nodes),))
-
-        for node_num, node_coord in node_dict.items():
-            x[node_num - 1] = node_coord[0]
-            y[node_num - 1] = node_coord[1]
-            z[node_num - 1] = node_coord[2]
-            n[node_num - 1] = node_num
-
-        return x, y, z, n, nodes
-
-    def find_shape_xz(x, y, z, n):
-        xco = []
-        zco = []
-
-        for i in range(len(n)):
-            if x[i] not in xco:
-                xco.append(x[i])
-            if z[i] not in zco:
-                zco.append(z[i])
-
-        return len(zco), len(xco)
-
-    fig = plt.figure()
-    ax1 = fig.add_subplot(121, projection='3d')
-    ax2 = fig.add_subplot(122, projection='3d')
-
-    xn, yn, zn, nn, _ = get_nodes(node_dict)
-    xs, ys, zs, ns, _ = get_spar(xn, yn, zn, nn, sort=True)
-    xt, yt, zt, nt, _ = get_top(xn, yn, zn, nn, sort=True)
-    xb, yb, zb, nb, _ = get_bottom(xn, yn, zn, nn)
-
-    #print(len(yt[np.where(xt == 172)]))
-    #print(yt[np.where(xt == 172)])
-    #print(sorted(zt[np.where(xt == 172)]))
-    shapet = find_shape_xz(xt, yt, zt, nt)
-    print(shapet)
-    np.reshape(yt, shapet)
-
-    img = ax1.scatter(xt, zt, yt, c=nt, cmap=plt.hot())
-    ax2.plot_wireframe(np.reshape(xt, shapet), np.reshape(zt, shapet), np.reshape(yt, shapet))
-    ax1.set_xlabel("X")
-    ax1.set_ylabel("Z")
-    ax1.set_zlabel("Y")
-    fig.colorbar(img)
-
-    plt.show()
+    return None, None, None
 
 
 if __name__ == '__main__':
-    node = read_inp()
-    plot_aileron(node)
+    case1, case2, case3 = read_rpt()
+    #node, elem = read_inp()
+    #fig = plt.figure()
+    #ax1 = fig.add_subplot(111, projection='3d')
+    #for el in elem:
+    #    el.plot_self(ax1)
+
+    #plt.show()
