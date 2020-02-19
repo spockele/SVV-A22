@@ -15,12 +15,6 @@ class Polynomial:
         
     def order(self):
         self.degree = len(self.coefficients) - 1
-       
-    def __call__(self,x):
-        layer = 0
-        for coeff in self.coefficients:
-            layer = coeff + x*layer
-        return layer
     
     def integrated(self, integrals):
         for integral in range(integrals):
