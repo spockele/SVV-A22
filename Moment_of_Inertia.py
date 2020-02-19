@@ -32,6 +32,7 @@ lenperstr = totlen/nstringhalf  #[m]
 #The distance between the stringers is larger than the length of the circle part of the aileron
 #i.e. except for the stringer at the leading edge, all stringers are placed on the straigth part of the aileron
 ang = np.arctan((ha/2)/(Ca-ha/2)) #[rad]
+#first stringer is located at the origin
 zstr = [0]
 ystr = [0]
 
@@ -63,7 +64,7 @@ Cz = (sum(zstr)*Astr + zcirc*Askcirc + 2*zstraight*Askstraight)/(nstr*Astr + Ask
 #For a thin walled semicircle, the moment of Inertia about its own centroid is pi/2*R^3*t
 Icirc = np.pi/2*(ha/2)**3*tsk #[m^4]
 
-#For the thin walled plate at an angle, its moment of Inertai about its own centroid is t*L^3*sin^2(a)/12 or t*L^3*cos^2(a)/12
+#For the thin walled plate at an angle, its moment of Inertia about its own centroid is t*L^3*sin^2(a)/12 or t*L^3*cos^2(a)/12
 #About Z axis: sin^2
 #About Y axis: cos^2
 Istraightz = tsk*straightlen**3*(np.sin(ang))**2/12 #[m^4]
