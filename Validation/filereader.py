@@ -36,20 +36,48 @@ class Element():
                f' VMi: ({self.VMi_Bend}, {self.VMi_JBen}, {self.VMi_JStr}),'\
                f' S12: ({self.S12_Bend}, {self.S12_JBen}, {self.S12_JStr})\n'
 
-    def plot_self(self, ax):
-        ax.plot_wireframe(self.xs, self.zs, self.ys)
+    def plot_self(self, ax, case, tpe, VMi_mm, S12_mm):
+        if case == "Bend":
+            col = (self.VMi_Bend - VMi_mm[0]) / (VMi_mm[1] - VMi_mm[0]) if tpe == "VMi" else (self.S12_Bend - S12_mm[0]) / (S12_mm[1] - S12_mm[0])
+        elif case == "JBen":
+            col = (self.VMi_JBen - VMi_mm[0]) / (VMi_mm[1] - VMi_mm[0]) if tpe == "VMi" else (self.S12_JBen - S12_mm[0]) / (S12_mm[1] - S12_mm[0])
+        elif case == "JStr":
+            col = (self.VMi_JStr - VMi_mm[0]) / (VMi_mm[1] - VMi_mm[0]) if tpe == "VMi" else (self.S12_JStr - S12_mm[0]) / (S12_mm[1] - S12_mm[0])
+
+        ax.plot_surface(self.xs, self.zs, self.ys)
 
 
 class Node():
     def __init__(self, num, xyz, data_dict):
         self.num = num
-        self.x, self.y, self.z = xyz
+        self.x, self.y, self.z = xyz 
         self.U_Bend = data_dict["Bending"]["displacement"][self.num]
         self.U_JBen = data_dict["Jam_Bent"]["displacement"][self.num]
         self.U_JStr = data_dict["Jam_Straight"]["displacement"][self.num]
 
+        self.xd, self.yd, self.zd = None, None, None
+
     def __repr__(self):
         return f'Node {self.num}: ({self.x}, {self.y}, {self.z}), U: {self.U_Bend}, {self.U_JBen}, {self.U_JStr}\n'
+
+    def displace(self, case):
+        if case == "Bend":
+            _, dx, dy, dz = self.U_Bend
+        elif case == "JBen":
+            _, dx, dy, dz = self.U_JBen
+        elif case == "JStr":
+            _, dx, dy, dz = self.U_JStr
+        else:
+            dx, dy, dz = 0, 0, 0
+
+        self.xd, self.yd, self.zd = self.x + dx, self.y + dy, self.z + dz
+
+
+    def plot_self(self, ax, u=False):
+        if u:
+            ax.scatter([self.xd], [self.zd], [self.yd], color='red')
+        else:
+            ax.scatter([self.x], [self.z], [self.y], color='red')
 
 
 def read_inp(data_dict):
@@ -120,25 +148,31 @@ def read_rpt():
                 data_line = line.strip("\n").split(",")
                 data_line = [int(data_line[0])] + [float(data) for data in data_line[1:]]
                 data_dict[case][tpe][data_line[0]] = tuple(data_line[1:])
-                print(case, ':', tpe, ':', data_line[0], ':', data_dict[case][tpe][data_line[0]])
 
             if "Step" in line:
                 case, tpe = line.strip("\n").replace("Step: ", "").split(", ")
 
-    return data_dict
+        for case in data_dict:
+            for tpe in data_dict[case]:
+                VMi_lst = [(data_dict[case][tpe][node][0] + data_dict[case][tpe][node][1]) / 2 for node in data_dict[case][tpe]]
+                S12_lst = [(data_dict[case][tpe][node][2] + data_dict[case][tpe][node][3]) / 2 for node in data_dict[case][tpe]]
+
+    return data_dict, (min(VMi_lst), max(VMi_lst)), (min(S12_lst), max(S12_lst))
 
 
 if __name__ == '__main__':
-    data = read_rpt()
+    data, VMi, S12 = read_rpt()
     node, elem = read_inp(data)
     print(node)
     print(elem)
     fig = plt.figure()
     ax1 = fig.add_subplot(111, projection='3d')
-    ax1.set_xlim(0, 1200)
-    ax1.set_ylim(0-600, 600)
-    ax1.set_zlim(0-600, 600)
+    ax1.set_ylim(0-600, 100)
+    ax1.set_zlim(0-350, 350)
     for el in elem:
-        el.plot_self(ax1)
+        el.plot_self(ax1, "Bend", "VMi", VMi, S12)
+
+    for no in node:
+        no.plot_self(ax1)
 
     plt.show()
