@@ -93,20 +93,21 @@ def read_inp(data_dict):
     Reads the Abaqus input file
     :return:
     """
-    path = "B737.inp"
+    path = "B737_working_copy.inp"
     with open(path) as f:
         nodes = False
         elements = False
+        assembly = False
         s = False
         node_dct = {}
-        node_lst = []
         elem_lst = []
+        asem_lst = []
 
         for line in f:
-            if line == "*Nset, nset=Skin\n":
+            if line == "** ASSEMBLY\n":
                 elements = False
+                assembly = True
                 s = False
-                break
 
             if line == "*Element, type=S4R\n":
                 nodes = False
@@ -116,6 +117,14 @@ def read_inp(data_dict):
             if line == "*Node\n":
                 nodes = True
                 s = False
+
+            if assembly and s:
+                data_line = line.strip("\n").replace(' ', '')
+                data_line = data_line.split(',')
+                for i, data_pt in enumerate(data_line):
+                    data_line[i] = float(data_pt) if i > 0 else int(data_pt)
+
+                asem_lst.append(Node(data_line[0], tuple(data_line[1:]), data_dict))
 
             if elements and s:
                 data_line = line.strip("\n").replace(' ', '')
@@ -135,7 +144,7 @@ def read_inp(data_dict):
 
             s = True
 
-    return node_dct, elem_lst
+    return node_dct, elem_lst, asem_lst
 
 
 def read_rpt():
@@ -175,7 +184,7 @@ if __name__ == '__main__':
     ipt = input("Load case and stress to display: ")
     case, tpe = ipt.split(", ")
     data, VMi, S12 = read_rpt()
-    node, elem = read_inp(data)
+    node, elem, asem = read_inp(data)
 
     mm = VMi[case] if tpe == "VMi" else S12[case]
 
@@ -187,8 +196,8 @@ if __name__ == '__main__':
     for el in elem:
         el.plot_self(ax1, case, tpe, VMi, S12)
 
-    #for no in node:
-    #    no.plot_self(ax1)
+    for no in asem:
+        no.plot_self(ax1)
 
     n = color.Normalize(vmin=mm[0], vmax=mm[1])
     m = cm.ScalarMappable(norm=n, cmap=plt.viridis())
