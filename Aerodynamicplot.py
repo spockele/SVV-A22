@@ -11,6 +11,7 @@ import matplotlib.pyplot as plt
 from matplotlib import cm
 import numpy as np
 from integration import *
+from interpolation import *
 
 
 #reading and obtaining the data points
@@ -59,9 +60,22 @@ for i in np.arange(0,41):
     zarray = np.append(zarray,zi) 
 zarray = np.append(zarray,-Ca) 
 
+
+# Unit test for constant data
+#datalist = np.ones((81,43))
+#zarray = np.linspace(0,Ca,43)
+#xarray = np.linspace(0,la,83)
+
+
 # Linear splines & integrations for each cross section
 dq = np.array([])
 cop = np.array([])
+
+max_h = 0
+for i in range(len(zarray)-1):
+    hi = abs(zarray[i+1]-zarray[i])
+    if hi > max_h:
+        max_h = hi
 
 for x in range(81):
     si = np.array([0, 0])
@@ -74,19 +88,19 @@ for x in range(81):
         # splines are formatted as a_n, a_n-1, ... , a_0
         si = np.vstack((si, spline))
     si = np.delete(si, 0, 0)
+    
     #all the splines for the cross section are in this array now we integrate
     integral = 0
-    moment = 0
+    weighted = 0
     for z in range(len(zarray)-1):
         sp = Polynomial(si[z,0], si[z,1])
         sp = sp.definite_integral(zarray[z], zarray[z+1], 1)
-        z_arm = (zarray[z] - zarray[z+1])/2 + zarray[z]
         integral += sp
-        moment += sp*z_arm
+        spw = Polynomial(si[z,0], si[z,1], 0)
+        spw = spw.definite_integral(zarray[z], zarray[z+1], 1)
+        weighted += spw
     dq = np.append(dq, integral)
-    cop = np.append(cop, moment/integral)
-
-print(cop)
-print(len(dq))   
+    cop = np.append(cop, weighted/integral)
+    
     
 #avgline = ax.plot(xarray,cavg,15)
