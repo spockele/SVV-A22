@@ -10,47 +10,45 @@ import numpy as np
 
 
 class Element:
-    def __init__(self, num, nodes, node_dct, data_dict):
+    def __init__(self, num, nodes, node_dct, data_dict, VMi_mm, S12_mm):
         self.num = num
         self.nodes = nodes
 
         self.corners = []
-        for node in nodes:
-            self.corners.append(node_dct[node])
+        for n in nodes:
+            self.corners.append(node_dct[n])
 
         self.corners = self.corners[:-2] + [self.corners[-1]] + [self.corners[-2]]
         self.xs, self.ys, self.zs = None, None, None
 
-        self.VMi_Bend = (data_dict["Bending"]["VM_S12"][self.num][0] + data_dict["Bending"]["VM_S12"][self.num][1]) / 2
-        self.S12_Bend = (data_dict["Bending"]["VM_S12"][self.num][2] + data_dict["Bending"]["VM_S12"][self.num][3]) / 2
+        self.data = {case: {"VMi": (data_dict[case]["VM_S12"][self.num][0] + data_dict[case]["VM_S12"][self.num][1]) / 2,
+                            "S12": (data_dict[case]["VM_S12"][self.num][2] + data_dict[case]["VM_S12"][self.num][3]) / 2
+                            }
+                     for case in data_dict
+                     }
 
-        self.VMi_JBen = (data_dict["Jam_Bent"]["VM_S12"][self.num][0] + data_dict["Jam_Bent"]["VM_S12"][self.num][1]) / 2
-        self.S12_JBen = (data_dict["Jam_Bent"]["VM_S12"][self.num][2] + data_dict["Jam_Bent"]["VM_S12"][self.num][3]) / 2
-
-        self.VMi_JStr = (data_dict["Jam_Straight"]["VM_S12"][self.num][0] + data_dict["Jam_Straight"]["VM_S12"][self.num][1]) / 2
-        self.S12_JStr = (data_dict["Jam_Straight"]["VM_S12"][self.num][2] + data_dict["Jam_Straight"]["VM_S12"][self.num][3]) / 2
+        self.data_norm = {case: {"VMi": (self.data[case]["VMi"] - VMi_mm[case][0]) / (VMi_mm[case][1] - VMi_mm[case][0]),
+                                 "S12": (self.data[case]["S12"] - S12_mm[case][0]) / (S12_mm[case][1] - S12_mm[case][0])}
+                          for case in self.data
+                          }
 
     def __repr__(self):
-        return f'Element {self.num}: nodes: {self.nodes},'\
-               f' VMi: ({self.VMi_Bend}, {self.VMi_JBen}, {self.VMi_JStr}),'\
-               f' S12: ({self.S12_Bend}, {self.S12_JBen}, {self.S12_JStr})\n'
+        return f'Element {self.num}: nodes: \n{self.corners}\n'
 
-    def plot_self(self, ax, case, tpe, VMi_mm, S12_mm):
+    def __lt__(self, other):
+        if isinstance(other, Element):
+            return min(c.x for c in self.corners) < min(c.x for c in other.corners)
+        else:
+            raise TypeError(f"Cannot compare Element to {type(other)}")
+
+    def plot_self(self, ax, case, tpe):
         self.xs, self.ys, self.zs = np.zeros((2, 2)), np.zeros((2, 2)), np.zeros((2, 2))
         for i, corner in enumerate(self.corners):
             corner.displace(case)
             self.xs[i % 2, i // 2], self.ys[i % 2, i // 2], self.zs[i % 2, i // 2] = corner.xd, corner.yd, corner.zd
 
-        if case == "Bending":
-            col = (self.VMi_Bend - VMi_mm[case][0]) / (VMi_mm[case][1] - VMi_mm[case][0]) if tpe == "VMi" else (self.S12_Bend - S12_mm[case][0]) / (S12_mm[case][1] - S12_mm[case][0])
-        elif case == "Jam_Bent":
-            col = (self.VMi_JBen - VMi_mm[case][0]) / (VMi_mm[case][1] - VMi_mm[case][0]) if tpe == "VMi" else (self.S12_JBen - S12_mm[case][0]) / (S12_mm[case][1] - S12_mm[case][0])
-        elif case == "Jam_Straight":
-            col = (self.VMi_JStr - VMi_mm[case][0]) / (VMi_mm[case][1] - VMi_mm[case][0]) if tpe == "VMi" else (self.S12_JStr - S12_mm[case][0]) / (S12_mm[case][1] - S12_mm[case][0])
-
-        #print(col)
-        cmap = plt.get_cmap('viridis')
-        col = [[cmap(col)]]
+        cmp = plt.get_cmap('viridis')
+        col = [[cmp(self.data_norm[case][tpe])]]
 
         ax.plot_surface(self.xs, self.zs, self.ys, facecolors=col)
 
@@ -74,7 +72,13 @@ class Node:
             self.R_JStr = data_dict["Jam_Straight"]["reaction"][self.num]
 
     def __repr__(self):
-        return f'Node {self.num}: ({self.x}, {self.y}, {self.z}), U: {self.U_Bend}, {self.U_JBen}, {self.U_JStr}\n'
+        return f'Node {self.num}: ({self.x}, {self.y}, {self.z})\n'
+
+    def __lt__(self, other):
+        if isinstance(other, Node):
+            return self.x < other.x
+        else:
+            raise TypeError(f"Cannot compare Node to {type(other)}")
 
     def displace(self, case):
         if case == "Bending":
@@ -112,7 +116,7 @@ class Node:
             ax.quiver([self.x], [self.z], [self.y], rx*sc, rz*sc, ry*sc, color="red")
 
 
-def read_inp(data_dict):
+def read_inp(data_dict, VMi_mm, S12_mm):
     """
     Reads the Abaqus input file
     :return:
@@ -126,6 +130,7 @@ def read_inp(data_dict):
         node_dct = {}
         elem_lst = []
         asem_lst = []
+        node_lst = []
 
         for line in f:
             if line == "** ASSEMBLY\n":
@@ -156,7 +161,7 @@ def read_inp(data_dict):
                 for i, data_pt in enumerate(data_line):
                     data_line[i] = int(data_pt)
 
-                elem_lst.append(Element(data_line[0], data_line[1:], node_dct, data_dict))
+                elem_lst.append(Element(data_line[0], data_line[1:], node_dct, data_dict, VMi_mm, S12_mm))
 
             if nodes and s:
                 data_line = line.strip("\n").replace(' ', '')
@@ -164,11 +169,13 @@ def read_inp(data_dict):
                 for i, data_pt in enumerate(data_line):
                     data_line[i] = float(data_pt) if i > 0 else int(data_pt)
 
-                node_dct[data_line[0]] = Node(data_line[0], tuple(data_line[1:]), data_dict, False)
+                node_inst = Node(data_line[0], tuple(data_line[1:]), data_dict, False)
+                node_dct[data_line[0]] = node_inst
+                node_lst.append(node_inst)
 
             s = True
 
-    return node_dct, elem_lst, asem_lst
+    return node_dct, node_lst, elem_lst, asem_lst
 
 
 def read_rpt():
@@ -195,8 +202,8 @@ def read_rpt():
         VMi_lst = {}
         S12_lst = {}
         for case in data_dict:
-            VMi_lst[case] = [(data_dict[case]["VM_S12"][node][0] + data_dict[case]["VM_S12"][node][1]) / 2 for node in data_dict[case]["VM_S12"]]
-            S12_lst[case] = [(data_dict[case]["VM_S12"][node][2] + data_dict[case]["VM_S12"][node][3]) / 2 for node in data_dict[case]["VM_S12"]]
+            VMi_lst[case] = [(data_dict[case]["VM_S12"][elm][0] + data_dict[case]["VM_S12"][elm][1]) / 2 for elm in data_dict[case]["VM_S12"]]
+            S12_lst[case] = [(data_dict[case]["VM_S12"][elm][2] + data_dict[case]["VM_S12"][elm][3]) / 2 for elm in data_dict[case]["VM_S12"]]
 
         VMi = {case: (min(VMi_lst[case]), max(VMi_lst[case])) for case in VMi_lst}
         S12 = {case: (min(S12_lst[case]), max(S12_lst[case])) for case in S12_lst}
@@ -208,63 +215,46 @@ if __name__ == '__main__':
     ipt = input("Load case and stress to display: ")
     case, tpe = ipt.split(", ")
     data, VMi, S12 = read_rpt()
-    node, elem, asem = read_inp(data)
+    node_dict, node, elem, asem = read_inp(data, VMi, S12)
 
     mm = VMi[case] if tpe == "VMi" else S12[case]
 
     fig = plt.figure()
-    ax1 = fig.add_subplot(111, projection='3d')
-    ax1.set_ylim(0-600, 100)
-    ax1.set_zlim(0-350, 350)
+    ax1 = fig.add_subplot(121, projection='3d')
+    ax2 = fig.add_subplot(122)
+    ax1.set_ylim(0 - 600, 100)
+    ax1.set_zlim(0 - 350, 350)
+    ax2.set_xlim(0 - 600, 100)
+    ax2.set_ylim(0 - 350, 350)
+
+    node.sort()
+    elem.sort()
 
     #for el in elem:
-    #    el.plot_self(ax1, case, tpe, VMi, S12)
+    #    el.plot_self(ax1, case, tpe)
 
     for no in asem:
-        no.plot_self(ax1, case, u=True)
         scale = 100 if no.num in range(5, 16) else 1
         no.plot_quiver(ax1, case, u=True, sc=scale)
 
-    for n, no in node.items():
-        if n in (11,   14,   39,   40,   41,   42,  207,  208,  209,  210,  211,  918,  919,  920,  921,  922,
-                 923,  924,  925,  926,  927,  928,  929,  930,  931,  932,  933,  934,  935,  955,  963,  964,
-                 965,  966,  967,  968,  969,  970,  971,  972,  973,  974,  975,  976,  977,  978,  979,  980,
-                 981,  982,  983,  984,  985,  986,  987, 1028, 1029, 1030, 1031, 1032, 1033,
-                 1, 4, 18, 19, 24, 26, 52, 53, 54, 55, 56, 305, 306, 307, 308, 309,
-                 310, 311, 312, 313, 314, 315, 316, 317, 318, 319, 320, 321, 322, 458, 461, 462,
-                 463, 464, 465, 532, 533, 534, 535, 536, 537, 538, 541, 566, 567, 568, 569, 570,
-                 571, 572, 573, 574, 575, 576, 577, 578, 579, 580, 581, 582, 583,
-                 7, 8, 27, 29, 30, 31, 162, 163, 164, 165, 166, 553, 554, 555, 556, 557,
-                 565, 608, 609, 610, 611, 612, 613, 614, 615, 616, 617, 618, 619, 620, 621, 622,
-                 623, 624, 625, 673, 674, 675, 676, 677, 678, 679, 680, 681, 682, 683, 684, 685,
-                 686, 687, 688, 689, 690, 721, 723, 724, 725, 726, 727, 728, 729
-                 ):
-            no.plot_self(ax1, case, u=True, color="green")
+    normal = color.Normalize(vmin=mm[0], vmax=mm[1])
+    cmap = cm.ScalarMappable(norm=normal, cmap=plt.viridis())
+    cbar = plt.colorbar(cmap)
 
-        if n in (12,  13,  15,  36,  37,  38, 196, 197, 198, 199, 200, 246, 247, 248, 249, 250,
-                 823, 876, 877, 878, 879, 880, 881, 882, 883, 884, 885, 886, 887, 888, 889, 890,
-                 891, 892, 893, 894, 895, 896, 897, 898, 899, 900, 901, 902, 903, 904, 905, 906,
-                 907, 908, 909, 910, 911, 948, 956, 957, 958, 959, 960, 961, 962,
-                 9, 10, 32, 33, 34, 35, 179, 180, 181, 182, 183, 697, 698, 699, 700, 701,
-                 702, 703, 704, 705, 706, 707, 708, 709, 710, 711, 712, 713, 714, 722, 730, 731,
-                 732, 733, 734, 735, 736, 749, 750, 751, 752, 753, 788, 824, 825, 826, 827, 828,
-                 829, 830, 831, 832, 833, 834, 835, 836, 837, 838, 839, 840, 841,
-                 5, 6, 21, 22, 25, 28, 104, 105, 106, 107, 108, 390, 391, 392, 393, 394,
-                 395, 396, 397, 398, 399, 400, 401, 402, 403, 404, 405, 406, 407, 460, 478, 479,
-                 480, 481, 482, 483, 484, 542, 543, 544, 545, 546, 558, 584, 585, 586, 587, 588,
-                 589, 590, 591, 592, 593, 594, 595, 596, 597, 598, 599, 600, 601,
-                 2, 3, 16, 17, 20, 23, 45, 46, 47, 48, 49, 285, 286, 287, 288, 289,
-                 290, 291, 292, 293, 294, 295, 296, 297, 298, 299, 300, 301, 302, 325, 326, 327,
-                 328, 329, 330, 331, 332, 333, 334, 335, 336, 337, 338, 339, 340, 341, 342, 455,
-                 459, 466, 467, 468, 469, 470, 471, 472, 473, 474, 475, 476, 477
-                 ):
-            no.plot_self(ax1, case, u=True, color="blue")
+    cbl = "Von Mises stress" if tpe == "VMi" else "Shear stress"
+    cbar.set_label(cbl)
 
-    n = color.Normalize(vmin=mm[0], vmax=mm[1])
-    m = cm.ScalarMappable(norm=n, cmap=plt.viridis())
-    plt.colorbar(m)
+    if case == "Bending":
+        ttl = "Only bending"
+    elif case == "Jam_Bent":
+        ttl = "Bending and jammed actuator"
+    elif case == "Jam_Straight":
+        ttl = "Only jammed actuator"
+    plt.title(f"{cbl} distribution on the deformed aileron\n{ttl}")
 
     ax1.set_xlabel("X")
     ax1.set_ylabel("Z")
     ax1.set_zlabel("Y")
+    ax2.set_xlabel("Z")
+    ax2.set_ylabel("Y")
     plt.show()
