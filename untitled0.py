@@ -27,18 +27,23 @@ def interpolate_lagrange(x, x_values, y_values):
     return sum(_basis(j)*y_values[j] for j in range(k)) 
 
 x = Symbol('x')
-xs = np.arange(0,83,1)
-data = xs**2
-poly = simplify(interpolate_lagrange(x,xs,data))
-
-a = Poly(poly)
-print(a)
-print(a.all_coeffs())
-
-x1 = np.linspace(-1, 2, 100)
-y1 = lambdify(x, poly)(x1)
+xs = np.arange(0,44,1)
+data = np.array(xs)
+#
+#poly = simplify(interpolate_lagrange(x,xs,data))
+#
+#a = Poly(poly)
+#print(a)
+#print(a.all_coeffs())
+#
+#x1 = np.linspace(-1, 2, 100)
+#y1 = lambdify(x, poly)(x1)
 
 #fig, ax = plt.subplots()
 #ax.plot(x1, y1)
 #ax.scatter([-1, 0, 1, 2],[3,-4, 5, -6], c = 'r')
 #plt.show()
+
+xarray = np.arange(0,Ca,Ca/43)
+zarray = np.arange(0,la,la/82)
+print(len(xarray))
