@@ -5,6 +5,7 @@ Created on Wed Feb 19 09:04:15 2020
 @author: Mohammad
 """
 # Analytic integration for a given polynomial
+import numpy as np
 class Polynomial:
     
     def __init__(self, *coefficients):
@@ -36,9 +37,5 @@ class Polynomial:
             value += self.coefficients[i]*(b**(self.degree-i) - a**(self.degree-i))
         #print('Value of integral on (', a, ',', b, ') is', value)
         return value
-    
-p = Polynomial(1)
 
-
-p_int = p.definite_integral(0, 1, 3)
 
