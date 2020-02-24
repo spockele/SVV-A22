@@ -37,5 +37,6 @@ class Polynomial:
             value += self.coefficients[i]*(b**(self.degree-i) - a**(self.degree-i))
         #print('Value of integral on (', a, ',', b, ') is', value)
         return value
+    
 
 
