@@ -38,7 +38,7 @@ strver = np.array([[-0.        ,  0.        ],
        [-0.28005126, -0.0443813 ],
        [-0.19847177, -0.06213382],
        [-0.11689227, -0.07988634],
-       [-0.03725877, -0.07111646]]) * -1
+       [-0.03725877, -0.07111646]])
 strver = np.transpose(strver)
 Aver = 0.0021255886520793153
 
@@ -141,10 +141,10 @@ if plot:
     plt.plot(xcirc,ycirc)
     plt.plot([zsp,zsp],[ha/2,-ha/2])
     plt.scatter(zstr,ystr)
-    plt.scatter(zcirc,0)
-    plt.scatter([zstraight,zstraight],[ystraight,-ystraight])
-    plt.scatter(Cz,0)
-    plt.scatter(zsp, 0)
+#    plt.scatter(zcirc,0)
+#    plt.scatter([zstraight,zstraight],[ystraight,-ystraight])
+#    plt.scatter(Cz,0)
+#    plt.scatter(zsp, 0)
     
 Aerror = round((Atot-Aver)/Atot*100,3)
 Czerror = round((Cz -Czver)/Cz*100,3)
