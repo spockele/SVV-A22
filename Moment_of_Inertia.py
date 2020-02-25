@@ -145,13 +145,13 @@ Iyy = Icirc0 + Askcirc*(zcirc-Cz)**2 + 2*(Istraighty + Askstraight*(zstraight-Cz
 #    plt.scatter([zstraight,zstraight],[ystraight,-ystraight])
 #    plt.scatter(Cz,0)
 #    plt.scatter(zsp, 0)
-    
-Aerror = round((Atot-Aver)/Atot*100,3)
-Czerror = round((Cz -Czver)/Cz*100,3)
-Izzerror = round((Izz-Izzver)/Izz*100,3)
-Iyyerror = round((Iyy - Iyyver)/Iyy*100,3)
-
-print("Total area: " + str(Atot) + ". Error: " + str(Aerror) + "%")
-print("Centroid in z direction: " + str(Cz) + ". Error: " + str(Czerror) + "%")
-print("Izz: " + str(Izz) + ". Error: " + str(Izzerror) + "%")
-print("Iyy: " + str(Iyy) + ". Error: " + str(Iyyerror) + "%")
+#    
+#Aerror = round((Atot-Aver)/Atot*100,3)
+#Czerror = round((Cz -Czver)/Cz*100,3)
+#Izzerror = round((Izz-Izzver)/Izz*100,3)
+#Iyyerror = round((Iyy - Iyyver)/Iyy*100,3)
+#
+#print("Total area: " + str(Atot) + ". Error: " + str(Aerror) + "%")
+#print("Centroid in z direction: " + str(Cz) + ". Error: " + str(Czerror) + "%")
+#print("Izz: " + str(Izz) + ". Error: " + str(Izzerror) + "%")
+#print("Iyy: " + str(Iyy) + ". Error: " + str(Iyyerror) + "%")

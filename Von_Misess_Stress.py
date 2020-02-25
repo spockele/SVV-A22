@@ -42,12 +42,10 @@ Y = []
 for x in range(0,int(l_a/dx)):
     sigma_y = (-R1y*Mac(x-x1,1) - R2y*Mac(x-x2,1) - R3y*Mac(x-x3,1) - sin(theta)*Ra1*Mac(x-xa1,1) + sin(theta)*P*Mac(x-xa2,1) )/Izz
     sigma_z = (R1z*Mac(x-x1,1) + R2z*Mac(x-x2,1) + R3z*Mac(x-x3,1) + cos(theta)*Ra1*Mac(x-xa1,1) - cos(theta)*P*Mac(x-xa2,1))/Iyy
-    tau_max = max(tau_yz_1*x,tau_yz_2*x,tau_yz_3*x)
-    
-    
+    tau_max = max(tau_yz_1*x,tau_yz_2*x,tau_yz_3*x)  
     
     #maximum stress in aileron
-    Y.append(np.sqrt(0.5*((sigma_y)**2+(sigma_y-sigma_z)**2+(sigma_z)**2)+3*tau_max**2))
+    #Y.append(np.sqrt(0.5*((sigma_y)**2+(sigma_y-sigma_z)**2+(sigma_z)**2)+3*tau_max**2))
     
 print(max(Y))
 Y.index(max(Y))
