@@ -244,17 +244,23 @@ def table_reaction(data_dict, case):
 
         return data_rel
 
+    def save_table(tab):
+        with open(f"Table_{case}.txt", "w") as f:
+            f.writelines(tab)
+
     data_tab = extract_relevant()
     table = tab.tabulate(data_tab, ("Point", "|F|", "Fx", "Fy", "Fz"), numalign="right", tablefmt="presto")
+    latex = tab.tabulate(data_tab, ("Point", "|F|", "Fx", "Fy", "Fz"), numalign="right", tablefmt="latex_raw")
+    save_table(latex)
     print(table)
 
 
-if __name__ == '__main__':
+def main(case, tpe, view):
     # Pre-Processing of the data files
-    ipt = input("Load case and stress to display: ")
-    case, tpe = ipt.split(", ")
+    print(f"\nPlot_{case}_{tpe}_{view}\n-----------------------------------------------------")
     data, VMi, S12 = read_rpt()
     node_dict, node, elem, asem = read_inp(data, VMi, S12)
+
     table_reaction(data, case)
 
     mm = VMi[case] if tpe == "VMi" else S12[case]
@@ -284,9 +290,9 @@ if __name__ == '__main__':
     for el in elem:
         el.plot_self(ax1, case, tpe)
 
-    for no in asem:
-        scale = 100 if no.num in range(5, 16) else 1
-        no.plot_quiver(ax1, case, u=True, sc=scale)
+    # for no in asem:
+    #     scale = 100 if no.num in range(5, 16) else 1
+    #     no.plot_quiver(ax1, case, u=True, sc=scale)
 
     normal = color.Normalize(vmin=mm[0], vmax=mm[1])
     cmap = cm.ScalarMappable(norm=normal, cmap=plt.viridis())
@@ -304,7 +310,7 @@ if __name__ == '__main__':
     else:
         ttl = ""
     fig.suptitle(f"{cbt} distribution in the deformed aileron\n{ttl}")
-    ax1.set_title("Entire Aileron")
+    ax1.set_title("Entire Aileron", pad=50)
     ax2.set_title(f"Cross section with maximum stress at x={x_mdl}mm")
 
     ax1.set_xlabel("X")
@@ -312,6 +318,20 @@ if __name__ == '__main__':
     ax1.set_zlabel("Y")
     ax2.set_xlabel("Z")
     ax2.set_ylabel("Y")
+
+    plt.subplots_adjust(0, 0.05, 0.95, 0.90, 0.15, 0.15)
+    if view == "top":
+        ax1.view_init(azim=40, elev=30)
+    elif view == "bottom":
+        ax1.view_init(azim=40, elev=-30)
+    else:
+        ax1.view_init(azim=40, elev=0)
+
     plt.show()
 
-    input("Press enter to close the window.")
+
+if __name__ == '__main__':
+    for case in ("Bending", "Jam_Bent", "Jam_Straight"):
+        for tpe in ("VMi", "S12"):
+            for view in ("top", "bottom"):
+                main(case, tpe, view)
