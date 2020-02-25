@@ -7,6 +7,7 @@ import matplotlib.colors as color
 import matplotlib.cm as cm
 import mpl_toolkits.mplot3d as axes3d
 import numpy as np
+import tabulate as tab
 
 
 class Element:
@@ -232,20 +233,37 @@ def read_rpt():
     return data_dict, VMi, S12
 
 
+def table_reaction(data_dict, case):
+    def extract_relevant():
+        data_rel = []
+        for i in range(3):
+            h = (1, 3, 16)[i]
+            data_rel.append([f"Hinge {i+1}"] + [round(n, 3) for n in data_dict[case]["reaction"][h]])
+
+        data_rel.append([f"Actuator 1"] + [round(n, 3) for n in data_dict[case]["reaction"][2]])
+
+        return data_rel
+
+    data_tab = extract_relevant()
+    table = tab.tabulate(data_tab, ("Point", "|F|", "Fx", "Fy", "Fz"), numalign="right", tablefmt="presto")
+    print(table)
+
+
 if __name__ == '__main__':
     # Pre-Processing of the data files
     ipt = input("Load case and stress to display: ")
     case, tpe = ipt.split(", ")
     data, VMi, S12 = read_rpt()
     node_dict, node, elem, asem = read_inp(data, VMi, S12)
+    table_reaction(data, case)
 
     mm = VMi[case] if tpe == "VMi" else S12[case]
 
     node.sort()
     elem.sort()
 
-    [el_min] = [(i, el) for i, el in enumerate(elem) if el.data[case][tpe] == mm[0]]
-    [el_max] = [(i, el) for i, el in enumerate(elem) if el.data[case][tpe] == mm[1]]
+    [el_min, *_] = [(i, el) for i, el in enumerate(elem) if el.data[case][tpe] == mm[0]]
+    [el_max, *_] = [(i, el) for i, el in enumerate(elem) if el.data[case][tpe] == mm[1]]
     idx = (el_min[0] // 62) * 62 if abs(el_min[1].data[case][tpe]) > abs(el_max[1].data[case][tpe])\
         else (el_max[0] // 62) * 62
 
@@ -261,7 +279,7 @@ if __name__ == '__main__':
     for el in elem[idx:idx+62]:
         el.plot_2d(ax2, case, tpe)
 
-    x_mdl = round(sum(el.x) / len(el.x), 2)
+    x_mdl = round(sum(elem[idx].x) / len(elem[idx].x), 2)
 
     for el in elem:
         el.plot_self(ax1, case, tpe)
@@ -295,3 +313,5 @@ if __name__ == '__main__':
     ax2.set_xlabel("Z")
     ax2.set_ylabel("Y")
     plt.show()
+
+    input("Press enter to close the window.")
