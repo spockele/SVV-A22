@@ -20,6 +20,7 @@ class Element:
 
         self.corners = self.corners[:-2] + [self.corners[-1]] + [self.corners[-2]]
         self.xs, self.ys, self.zs = None, None, None
+        self.z, self.y, self.x = None, None, None
 
         self.data = {case: {"VMi": (data_dict[case]["VM_S12"][self.num][0] + data_dict[case]["VM_S12"][self.num][1]) / 2,
                             "S12": (data_dict[case]["VM_S12"][self.num][2] + data_dict[case]["VM_S12"][self.num][3]) / 2
@@ -51,6 +52,26 @@ class Element:
         col = [[cmp(self.data_norm[case][tpe])]]
 
         ax.plot_surface(self.xs, self.zs, self.ys, facecolors=col)
+
+    def find_2d(self, case):
+        z, y, x = [], [], []
+        for i, corner in enumerate(self.corners):
+            corner.displace(case)
+            if corner.zd not in z and corner.yd not in y:
+                z.append(corner.zd)
+                y.append(corner.yd)
+            if corner.x not in x:
+                x.append(corner.x)
+
+        self.z, self.y, self.x = z, y, x
+
+    def plot_2d(self, ax, case, tpe):
+        self.find_2d(case)
+
+        cmp = plt.get_cmap('viridis')
+        col = cmp(self.data_norm[case][tpe])
+
+        ax.plot(self.z, self.y, color=col)
 
 
 class Node:
@@ -224,14 +245,25 @@ if __name__ == '__main__':
     ax2 = fig.add_subplot(122)
     ax1.set_ylim(0 - 600, 100)
     ax1.set_zlim(0 - 350, 350)
-    ax2.set_xlim(0 - 600, 100)
+    ax2.set_xlim(0 - 550, 150)
     ax2.set_ylim(0 - 350, 350)
 
     node.sort()
     elem.sort()
 
-    #for el in elem:
-    #    el.plot_self(ax1, case, tpe)
+    [el_min] = [(i, el) for i, el in enumerate(elem) if el.data[case][tpe] == mm[0]]
+    [el_max] = [(i, el) for i, el in enumerate(elem) if el.data[case][tpe] == mm[1]]
+    i = (el_min[0] // 62) * 62
+    j = (el_max[0] // 62) * 62
+
+    for el in elem[j:j+62]:
+        el.plot_2d(ax2, case, tpe)
+
+    x_mdl = round(sum(el.x) / len(el.x), 2)
+
+
+    for el in elem:
+        el.plot_self(ax1, case, tpe)
 
     for no in asem:
         scale = 100 if no.num in range(5, 16) else 1
@@ -245,12 +277,16 @@ if __name__ == '__main__':
     cbar.set_label(cbl)
 
     if case == "Bending":
-        ttl = "Only bending"
+        ttl = "Bending case"
     elif case == "Jam_Bent":
-        ttl = "Bending and jammed actuator"
+        ttl = "Bending and jammed actuator case"
     elif case == "Jam_Straight":
-        ttl = "Only jammed actuator"
-    plt.title(f"{cbl} distribution on the deformed aileron\n{ttl}")
+        ttl = "Only jammed actuator case"
+    else:
+        ttl = ""
+    fig.suptitle(f"{cbl} distribution in the deformed aileron\n{ttl}")
+    ax1.set_title("Entire Aileron")
+    ax2.set_title(f"Cross section with maximum stress at x={x_mdl}mm")
 
     ax1.set_xlabel("X")
     ax1.set_ylabel("Z")
