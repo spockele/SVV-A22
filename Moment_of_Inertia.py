@@ -22,31 +22,57 @@ wstr = 1.8e-2 #[m]
 tsk = 1.1e-3 #[m]
 tsp = 2.5e-3 #[m]
 
+#Verification values
+Izzver = 5.8159389575991465e-06
+Iyyver = 4.363276766019503e-05
+Czver = -0.19406263838748938
+strver = np.array([[-0.        ,  0.        ],
+       [-0.03725877,  0.07111646],
+       [-0.11689227,  0.07988634],
+       [-0.19847177,  0.06213382],
+       [-0.28005126,  0.0443813 ],
+       [-0.36163076,  0.02662878],
+       [-0.44321025,  0.00887626],
+       [-0.44321025, -0.00887626],
+       [-0.36163076, -0.02662878],
+       [-0.28005126, -0.0443813 ],
+       [-0.19847177, -0.06213382],
+       [-0.11689227, -0.07988634],
+       [-0.03725877, -0.07111646]])
+strver = np.transpose(strver)
+Aver = 0.0021255886520793153
+
+
 #Calculations on stringer placements
-#Only done on one side due to symmetry
 nstringhalf = int(np.ceil(nstr/2))
 circlen = np.pi*ha/2 #[m]
-halfcirclen = circlen/2
 straightlen = np.sqrt((Ca-ha/2)**2 + (ha/2)**2) #[m]
-totlen = halfcirclen + straightlen #[m]
-lenperstr = totlen/nstringhalf  #[m]
-#The distance between the stringers is larger than the length of the circle part of the aileron
-#i.e. except for the stringer at the leading edge, all stringers are placed on the straigth part of the aileron
-ang = np.arctan((ha/2)/(Ca-ha/2)) #[rad]
+totlen = circlen + 2*straightlen #[m]
+lenperstr = totlen/nstr  #[m]
+
+ang = np.arctan((ha/2)/(Ca-ha/2)) 
+
 #first stringer is located at the origin
 zstr = [0]
 ystr = [0]
 
-for i in range(1,nstringhalf):
-    zstr.append(Ca-np.cos(ang)*i*lenperstr) #[m]
-    ystr.append(np.sin(ang)*i*lenperstr) #[m]
+for i in range(0,nstringhalf-2):
+    zstr.append(Ca-np.cos(ang)*lenperstr*(1/2+i)) #[m]
+    ystr.append(np.sin(ang)*lenperstr*(1/2+i)) #[m]
     #and for the other side
-    zstr.append(Ca-np.cos(ang)*i*lenperstr) #[m]
-    ystr.append(-np.sin(ang)*i*lenperstr) #[m]
+    zstr.append(Ca-np.cos(ang)*lenperstr*(1/2+i)) #[m]
+    ystr.append(-np.sin(ang)*lenperstr*(1/2+i)) #[m]
 
-    
+#The final stringers are placed on the semicircular part 
+strangle = lenperstr/(ha/2)
+zstr.append(ha/2*(1-np.cos(strangle)))
+ystr.append(ha/2*np.sin(strangle))
+#and for the other side
+zstr.append(ha/2*(1-np.cos(strangle)))
+ystr.append(-ha/2*np.sin(strangle))
+ 
 #Calculating stringer and skin areas
-Astr = wstr*tstr+(hstr-tstr)*tstr #[m^2]
+Astr = wstr*tstr+hstr*tstr #[m^2]
 Askcirc = circlen*tsk #[m^2]
 Askstraight = straightlen*tsk #[m^2]
 Asp = tsp*ha #[m^2]
@@ -61,14 +87,26 @@ ystraight = np.sin(ang)*straightlen/2 #[m]
 
 zsp = ha/2
 
+Atot = nstr*Astr + Askcirc + 2*Askstraight + Asp
+
+#Switching to the correct coordinate system:
+zstr = np.array(zstr)*-1
+zcirc = zcirc*-1
+zsp = zsp*-1
+zstraight = zstraight*-1
+
+
 #Calculating the centroid of the aileron
 #In y-direction, it is 0 due to symmetry
-Cz = (sum(zstr)*Astr + zcirc*Askcirc + 2*zstraight*Askstraight + zsp*Asp)/(nstr*Astr + Askcirc + 2*Askstraight + Asp) #[m]
+Cz = (sum(zstr)*Astr + zcirc*Askcirc + 2*zstraight*Askstraight + zsp*Asp)/Atot #[m]
+
 
 #For a thin walled semicircle, the moment of Inertia about its own centroid is pi/2*R^3*t
 Icirc = np.pi/2*(ha/2)**3*tsk #[m^4]
+#About the Y axis: we have to subtract a Steiner term
+Icirc0 = Icirc - Askcirc*(zsp-zcirc)**2
 
-#For the thin walled plate at an angle, its moment of Inertia about its own centroid is t*L^3*sin^2(a)/12 or t*L^3*cos^2(a)/12
+#For a thin walled plate at an angle, its moment of Inertia about its own centroid is t*L^3*sin^2(a)/12 or t*L^3*cos^2(a)/12
 #About Z axis: sin^2
 #About Y axis: cos^2
 Istraightz = tsk*straightlen**3*(np.sin(ang))**2/12 #[m^4]
@@ -79,6 +117,7 @@ Ispz = tsp*ha**3/12
 
 #For the total MoI, sum the individual parts and their corresponding Steiner Terms
 #For the stringers, only Steiner terms will be considered
+
 
 Izz = Icirc + 2*(Istraightz + Askstraight*ystraight**2) + sum((np.array(ystr))**2*Astr) + Ispz#[m^4]
 Iyy = Icirc + Askcirc*(zcirc-Cz)**2 + 2*(Istraighty + Askstraight*(zstraight-Cz)**2) + sum((np.array(zstr-Cz))**2*Astr) + Asp*(zsp-Cz)**2 #[m^4]

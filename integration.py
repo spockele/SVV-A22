@@ -38,27 +38,5 @@ class Polynomial:
         #print('Value of integral on (', a, ',', b, ') is', value)
         return value
     
-p = Polynomial(1)
 
 
-p_int = p.definite_integral(0, 1, 3)
-
-zarray = np.arange(0,10,0.001)
-datalist = zarray**2
-si = np.array([0, 0])
-for z in range(len(zarray)-1):
-    fi0 = datalist[z]
-    fi1 = datalist[z+1]
-    zi0 = zarray[z]
-    zi1 = zarray[z+1]
-    spline = np.array([(fi1 - fi0)/(zi1 - zi0), fi0 - (fi1 - fi0)/(zi1 - zi0)*(zi0)]);
-    # splines are formatted as a_n, a_n-1, ... , a_0
-    si = np.vstack((si, spline))
-si = np.delete(si, 0, 0)
-
-integral = 0
-for z in range(len(zarray)-1):
-    sp = Polynomial(si[z,0], si[z,1])
-    sp = sp.definite_integral(zarray[z], zarray[z+1], 1)
-    integral += sp
-print(integral)
