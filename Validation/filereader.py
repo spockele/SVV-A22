@@ -233,6 +233,7 @@ def read_rpt():
 
 
 if __name__ == '__main__':
+    # Pre-Processing of the data files
     ipt = input("Load case and stress to display: ")
     case, tpe = ipt.split(", ")
     data, VMi, S12 = read_rpt()
@@ -240,6 +241,15 @@ if __name__ == '__main__':
 
     mm = VMi[case] if tpe == "VMi" else S12[case]
 
+    node.sort()
+    elem.sort()
+
+    [el_min] = [(i, el) for i, el in enumerate(elem) if el.data[case][tpe] == mm[0]]
+    [el_max] = [(i, el) for i, el in enumerate(elem) if el.data[case][tpe] == mm[1]]
+    idx = (el_min[0] // 62) * 62 if abs(el_min[1].data[case][tpe]) > abs(el_max[1].data[case][tpe])\
+        else (el_max[0] // 62) * 62
+
+    # Plotting of the data
     fig = plt.figure()
     ax1 = fig.add_subplot(121, projection='3d')
     ax2 = fig.add_subplot(122)
@@ -248,19 +258,10 @@ if __name__ == '__main__':
     ax2.set_xlim(0 - 550, 150)
     ax2.set_ylim(0 - 350, 350)
 
-    node.sort()
-    elem.sort()
-
-    [el_min] = [(i, el) for i, el in enumerate(elem) if el.data[case][tpe] == mm[0]]
-    [el_max] = [(i, el) for i, el in enumerate(elem) if el.data[case][tpe] == mm[1]]
-    i = (el_min[0] // 62) * 62
-    j = (el_max[0] // 62) * 62
-
-    for el in elem[j:j+62]:
+    for el in elem[idx:idx+62]:
         el.plot_2d(ax2, case, tpe)
 
     x_mdl = round(sum(el.x) / len(el.x), 2)
-
 
     for el in elem:
         el.plot_self(ax1, case, tpe)
@@ -273,8 +274,8 @@ if __name__ == '__main__':
     cmap = cm.ScalarMappable(norm=normal, cmap=plt.viridis())
     cbar = plt.colorbar(cmap)
 
-    cbl = "Von Mises stress" if tpe == "VMi" else "Shear stress"
-    cbar.set_label(cbl)
+    cbt = "Von Mises stress" if tpe == "VMi" else "Shear stress"
+    cbar.set_label(cbt)
 
     if case == "Bending":
         ttl = "Bending case"
@@ -284,7 +285,7 @@ if __name__ == '__main__':
         ttl = "Only jammed actuator case"
     else:
         ttl = ""
-    fig.suptitle(f"{cbl} distribution in the deformed aileron\n{ttl}")
+    fig.suptitle(f"{cbt} distribution in the deformed aileron\n{ttl}")
     ax1.set_title("Entire Aileron")
     ax2.set_title(f"Cross section with maximum stress at x={x_mdl}mm")
 
