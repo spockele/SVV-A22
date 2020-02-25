@@ -123,24 +123,24 @@ Iyy = Icirc0 + Askcirc*(zcirc-Cz)**2 + 2*(Istraighty + Askstraight*(zstraight-Cz
 
 
 
-
-if plot:
-    xcirc = []
-    ycirc = []
-    for i in np.arange(-np.pi/2,np.pi/2,0.1):
-        xcirc.append(-np.cos(i))
-        ycirc.append(np.sin(i))
-    xcirc = np.array(xcirc)*-ha/2 - ha/2
-    ycirc = np.array(ycirc)*ha/2
-    xcirc = np.insert(xcirc,0, -Ca)
-    xcirc = np.append(xcirc, -Ca)
-    ycirc = np.insert(ycirc,0, 0)
-    ycirc = np.append(ycirc, 0)
-    fig = plt.gca()
-    fig.set_aspect('equal')    
-    plt.plot(xcirc,ycirc)
-    plt.plot([zsp,zsp],[ha/2,-ha/2])
-    plt.scatter(zstr,ystr)
+#
+#if plot:
+#    xcirc = []
+#    ycirc = []
+#    for i in np.arange(-np.pi/2,np.pi/2,0.1):
+#        xcirc.append(-np.cos(i))
+#        ycirc.append(np.sin(i))
+#    xcirc = np.array(xcirc)*-ha/2 - ha/2
+#    ycirc = np.array(ycirc)*ha/2
+#    xcirc = np.insert(xcirc,0, -Ca)
+#    xcirc = np.append(xcirc, -Ca)
+#    ycirc = np.insert(ycirc,0, 0)
+#    ycirc = np.append(ycirc, 0)
+#    fig = plt.gca()
+#    fig.set_aspect('equal')    
+#    plt.plot(xcirc,ycirc)
+#    plt.plot([zsp,zsp],[ha/2,-ha/2])
+#    plt.scatter(zstr,ystr)
 #    plt.scatter(zcirc,0)
 #    plt.scatter([zstraight,zstraight],[ystraight,-ystraight])
 #    plt.scatter(Cz,0)
