@@ -155,3 +155,4 @@ Iyy = Icirc0 + Askcirc*(zcirc-Cz)**2 + 2*(Istraighty + Askstraight*(zstraight-Cz
 #print("Centroid in z direction: " + str(Cz) + ". Error: " + str(Czerror) + "%")
 #print("Izz: " + str(Izz) + ". Error: " + str(Izzerror) + "%")
 #print("Iyy: " + str(Iyy) + ". Error: " + str(Iyyerror) + "%")
+#test
