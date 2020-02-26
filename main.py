@@ -184,34 +184,6 @@ def defly(x):
 def deflz(x):
     return (-1/(E*I_yy))*(R1z/6*Mac(x-x1,3) + R2z/6*Mac(x-x2,3) + R3z/6*Mac(x-x3,3) + cos(theta)*Ra1/6*Mac(x-xa1,3) - cos(theta)*P/6*Mac(x-xa2,3) + C3*x + C4)
 
-Sy = -R1y*Mac(x-x1,0) - R2y*Mac(x-x2,0) - R3y*Mac(x-x3,0) - sin(theta)*Ra1*Mac(x-xa1,0) + sin(theta)*P*Mac(x-xa2,0) 
-for i in q1:
-    Sy = Sy+i
-
-Mz = -R1y*Mac(x-x1,1) - R2y*Mac(x-x2,1) - R3y*Mac(x-x3,1) - sin(theta)*Ra1*Mac(x-xa1,1) + sin(theta)*P*Mac(x-xa2,1) 
-for i in q2:
-    Mz = Mz + i
-
-My = R1z*Mac(x-x1,1) + R2z*Mac(x-x2,1) + R3z*Mac(x-x3,1) + cos(theta)*Ra1*Mac(x-xa1,1) - cos(theta)*P*Mac(x-xa2,1)
-
-Torque = -ha/2*cos(theta)*P*Mac(x-xa2,0) + z_sc*sin(theta)*P*Mac(x-xa2,0) + ha/2*cos(theta)*Ra1*Mac(x-xa1,0) - z_sc*sin(theta)*Ra1*Mac(x-xa1,0) - (z_sc-z_hinge)*R1y*Mac(x-x1,0) - (z_sc-z_hinge)*R2y*Mac(x-x2,0) - (z_sc-z_hinge)*R3y*Mac(x-x3,0)
-for i in range(len(q1)):
-    Torque = Torque + qm1[i]
-    
-twist = -ha/2*cos(theta)*P*Mac(x-xa2,1) + z_sc*sin(theta)*P*Mac(x-xa2,1) + ha/2*cos(theta)*Ra1*Mac(x-xa1,1) - z_sc*sin(theta)*Ra1*Mac(x-xa1,1) - (z_sc-z_hinge)*R1y*Mac(x-x1,1) - (z_sc-z_hinge)*R2y*Mac(x-x2,1) - (z_sc-z_hinge)*R3y*Mac(x-x3,1) + C5
-for i in range(len(q2)):
-    twist = twist + q2[i] + qm2[i]
-twist = twist/(G*J)
-
-defly = -R1y/6*Mac(x-x1,3) - R2y/6*Mac(x-x2,3) - R3y/6*Mac(x-x3,3) - sin(theta)*Ra1/6*Mac(x-xa1,3) + sin(theta)*P/6*Mac(x-xa2,3) + C1*x + C2
-for i in q4:
-    defly = defly + i
-defly = defly*(-1/(E*I_zz))
-
-deflz = R1z/6*Mac(x-x1,3) + R2z/6*Mac(x-x2,3) + R3z/6*Mac(x-x3,3) + cos(theta)*Ra1/6*Mac(x-xa1,3) - cos(theta)*P/6*Mac(x-xa2,3) + C3*x + C4
-deflz = deflz*(-1/(E*I_yy))
-
-
 system = [Sz(la), 
        Sy(la), 
        Mz(la), 
