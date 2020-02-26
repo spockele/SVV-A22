@@ -331,7 +331,8 @@ def main(case, tpe, view):
 
 
 if __name__ == '__main__':
-    for case in ("Bending", "Jam_Bent", "Jam_Straight"):
-        for tpe in ("VMi", "S12"):
-            for view in ("top", "bottom"):
-                main(case, tpe, view)
+    main("Jam_Bent", "VMi", "")
+    #for case in ("Bending", "Jam_Bent", "Jam_Straight"):
+    #    for tpe in ("VMi", "S12"):
+    #        for view in ("top", "bottom"):
+    #            main(case, tpe, view)
