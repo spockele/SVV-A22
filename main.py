@@ -69,8 +69,8 @@ x1 = 0.149
 x2 = 0.554
 x3 = 1.541
 xa = 0.272
-xa1 = Ca/2 - xa/2
-xa2 = Ca/2 + xa/2
+xa1 = la/2 - xa/2
+xa2 = la/2 + xa/2
 y1 = 0.00681*cos(theta)
 y2 = 0
 y3 = 0.0203*cos(theta)
@@ -82,7 +82,7 @@ P = 37.9
 
 I_yy = Iyy
 I_zz = Izz
-z_sc = 0.027624002859342803 + ha
+z_sc = 0.027624002859342803 + z_hinge
 J = 8.275514338203897e-06
 E = 1
 G = 1
@@ -164,7 +164,7 @@ def Torque(x):
     return base+temp
 
 def twist(x):
-    base = -ha/2*cos(theta)*P*Mac(x-xa2,1) + z_sc*sin(theta)*P*Mac(x-xa2,1) + ha/2*cos(theta)*Ra1*Mac(x-xa1,1) - z_sc*sin(theta)*Ra1*Mac(x-xa1,1) - (z_sc-z_hinge)*R1y*Mac(x-x1,1) - (z_sc-z_hinge)*R2y*Mac(x-x2,1) - (z_sc-z_hinge)*R3y*Mac(x-x3,1) + C5
+    base = -ha/2*cos(theta)*P*Mac(x-xa2,1) + z_sc*sin(theta)*P*Mac(x-xa2,1) + ha/2*cos(theta)*Ra1*Mac(x-xa1,1) - z_sc*sin(theta)*Ra1*Mac(x-xa1,1) - (z_sc-z_hinge)*R1y*Mac(x-x1,1) - (z_sc-z_hinge)*R2y*Mac(x-x2,1) - (z_sc-z_hinge)*R3y*Mac(x-x3,1)
     l = -1
     for j in range(len(xarray)-1):
         if max(xarray[j],x) != x:
@@ -196,4 +196,30 @@ system = [Sz(la),
        deflz(x2) - z2,
        deflz(x3) - z3,
        deflz(xa1) + twist(xa1)*(ha/2) - a1]
-print(solve(system))
+sol = solve(system)
+print(sol)  
+# Values
+C1 = 0.279519165731257
+C2 = -0.0384445931088122
+C3 = -0.417965528308128
+C4 = 0.0619789183565207
+C5 = 4587.38387648207
+R1y = -3.24159865890804
+R1z = -12.3218865035638
+R2y = 5.00062052855391
+R2z = 24.8263794419833
+R3y = -0.607282578573421
+R3z = -0.924661188757137
+Ra1 = 25.0162567249494
+
+xx = np.linspace(0,la,200)
+y1 = np.array([])
+y2 = np.array([])
+for i in xx:
+    y1 = np.append(y1, twist(i)-twist(0))    
+    y2 = np.append(y2, Torque(i))    
+y1 = y1*180/np.pi
+plt.close()
+plt.plot(xx,y1,'r')
+plt.plot(xx,y2,'b')
+plt.show()

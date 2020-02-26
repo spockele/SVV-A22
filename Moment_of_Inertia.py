@@ -142,6 +142,6 @@ if plot:
     plt.scatter([zstraight,zstraight],[ystraight,-ystraight])
     plt.scatter(Cz,0)
     plt.scatter(zsp, 0)
-
+    plt.show()
 print(straightlen)
 
