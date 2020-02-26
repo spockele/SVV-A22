@@ -189,19 +189,19 @@ defly = defly*(-1/(E*I_zz))
 deflz = R1z/6*Mac(x-x1,3) + R2z/6*Mac(x-x2,3) + R3z/6*Mac(x-x3,3) + cos(theta)*Ra1/6*Mac(x-xa1,3) - cos(theta)*P/6*Mac(x-xa2,3) + C3*x + C4
 deflz = deflz*(-1/(E*I_yy))
 
-Sz.subs(x,la)
-# Solving the equations
-system = [Sz.subs(x,la), 
-       Sy.subs(x,la), 
-       Mz.subs(x,la), 
-       My.subs(x,la), 
-       Torque.subs(x,la), 
-       defly.subs(x,x1) + twist.subs(x,x1)*(z_sc-z_hinge) - y1,
-       defly.subs(x,x2) + twist.subs(x,x2)*(z_sc-z_hinge) - y2,
-       defly.subs(x,x3) + twist.subs(x,x3)*(z_sc-z_hinge) - y3,
-       deflz.subs(x,x1) - z1,
-       deflz.subs(x,x2) - z2,
-       deflz.subs(x,x3) - z3,
-       deflz.subs(x,xa1) + twist.subs(x,xa1)*(ha/2) - a1]
-print(nonlinsolve(system, [R1z, R2z, R3z, Ra1, R1y, R2y, R3y, C1, C2, C3, C4, C5]))
-print(system)
+#Sz.subs(x,la)
+## Solving the equations
+#system = [Sz.subs(x,la), 
+#       Sy.subs(x,la), 
+#       Mz.subs(x,la), 
+#       My.subs(x,la), 
+#       Torque.subs(x,la), 
+#       defly.subs(x,x1) + twist.subs(x,x1)*(z_sc-z_hinge) - y1,
+#       defly.subs(x,x2) + twist.subs(x,x2)*(z_sc-z_hinge) - y2,
+#       defly.subs(x,x3) + twist.subs(x,x3)*(z_sc-z_hinge) - y3,
+#       deflz.subs(x,x1) - z1,
+#       deflz.subs(x,x2) - z2,
+#       deflz.subs(x,x3) - z3,
+#       deflz.subs(x,xa1) + twist.subs(x,xa1)*(ha/2) - a1]
+#print(nonlinsolve(system, [R1z, R2z, R3z, Ra1, R1y, R2y, R3y, C1, C2, C3, C4, C5]))
+#print(system)
