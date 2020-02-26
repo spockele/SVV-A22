@@ -118,7 +118,6 @@ Ispz = tsp*ha**3/12
 #For the total MoI, sum the individual parts and their corresponding Steiner Terms
 #For the stringers, only Steiner terms will be considered
 
-
 Izz = Icirc + 2*(Istraightz + Askstraight*ystraight**2) + sum((np.array(ystr))**2*Astr) + Ispz#[m^4]
 Iyy = Icirc + Askcirc*(zcirc-Cz)**2 + 2*(Istraighty + Askstraight*(zstraight-Cz)**2) + sum((np.array(zstr-Cz))**2*Astr) + Asp*(zsp-Cz)**2 #[m^4]
 
@@ -145,3 +144,4 @@ if plot:
     plt.scatter(zsp, 0)
 
 print(straightlen)
+
