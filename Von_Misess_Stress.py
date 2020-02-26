@@ -34,7 +34,18 @@ tau_yz = 1
     
 
 Y = []
-
+C1 = 0.279519165731257
+C2 = -0.0384445931088122
+C3 = -0.417965528308128
+C4 = 0.0619789183565207
+C5 = 4587.38387648207
+R1y = -3.24159865890804
+R1z = -12.3218865035638
+R2y = 5.00062052855391
+R2z = 24.8263794419833
+R3y = -0.607282578573421
+R3z = -0.924661188757137
+Ra1 = 25.0162567249494
 
 
 #stresses in cross section
@@ -45,7 +56,7 @@ for x in range(0,int(l_a/dx)):
         sigma_z.append((My(x))/Iyy*x)
 
 for k in range(0,len(sigma_x)):
-    Y.append(np.sqrt(0.5*((sigma_x[k]-sigma_y[k])**2+(sigma_y[k]-sigma_z[k])**2+(sigma_z[k]-sigma_x[k])**2)+3*tau_yz**2))
+    Y.append((0.5*((sigma_x[k]-sigma_y[k])**2+(sigma_y[k]-sigma_z[k])**2+(sigma_z[k]-sigma_x[k])**2)+3*tau_yz**2)**0.5)
 
 print(max(Y))   
 
