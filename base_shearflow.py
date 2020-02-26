@@ -57,7 +57,7 @@ def qb3(sy, s3):
 
 
 def s4_str(z, y):
-    return math.sqrt((z-Ca)**2 + y**2)
+    return math.sqrt((z+Ca)**2 + y**2)
 
 
 def qb4(sy, s4):
