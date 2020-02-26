@@ -121,27 +121,27 @@ Ispz = tsp*ha**3/12
 Izz = Icirc + 2*(Istraightz + Askstraight*ystraight**2) + sum((np.array(ystr))**2*Astr) + Ispz#[m^4]
 Iyy = Icirc + Askcirc*(zcirc-Cz)**2 + 2*(Istraighty + Askstraight*(zstraight-Cz)**2) + sum((np.array(zstr-Cz))**2*Astr) + Asp*(zsp-Cz)**2 #[m^4]
 
-#if plot:
-#    xcirc = []
-#    ycirc = []
-#    for i in np.arange(-np.pi/2,np.pi/2,0.1):
-#        xcirc.append(np.cos(i))
-#        ycirc.append(np.sin(i))
-#    xcirc = np.array(xcirc)*-ha/2 + ha/2
-#    ycirc = np.array(ycirc)*ha/2
-#    xcirc = np.insert(xcirc,0, Ca)
-#    xcirc = np.append(xcirc, Ca)
-#    ycirc = np.insert(ycirc,0, 0)
-#    ycirc = np.append(ycirc, 0)
-#    fig = plt.gca()
-#    fig.set_aspect('equal')    
-#    plt.plot(xcirc,ycirc)
-#    plt.plot([zsp,zsp],[ha/2,-ha/2])
-#    plt.scatter(zstr,ystr)
-#    plt.scatter(zcirc,0)
-#    plt.scatter([zstraight,zstraight],[ystraight,-ystraight])
-#    plt.scatter(Cz,0)
-#    plt.scatter(zsp, 0)
+if plot:
+    xcirc = []
+    ycirc = []
+    for i in np.arange(-np.pi/2,np.pi/2,0.1):
+        xcirc.append(np.cos(i))
+        ycirc.append(np.sin(i))
+    xcirc = np.array(xcirc)*ha/2- ha/2
+    ycirc = np.array(ycirc)*ha/2
+    xcirc = np.insert(xcirc,0, -Ca)
+    xcirc = np.append(xcirc, -Ca)
+    ycirc = np.insert(ycirc,0, 0)
+    ycirc = np.append(ycirc, 0)
+    fig = plt.gca()
+    fig.set_aspect('equal')    
+    plt.plot(xcirc,ycirc)
+    plt.plot([zsp,zsp],[ha/2,-ha/2])
+    plt.scatter(zstr,ystr)
+    plt.scatter(zcirc,0)
+    plt.scatter([zstraight,zstraight],[ystraight,-ystraight])
+    plt.scatter(Cz,0)
+    plt.scatter(zsp, 0)
 
 #print(straightlen)
 
