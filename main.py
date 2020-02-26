@@ -84,8 +84,8 @@ I_yy = Iyy
 I_zz = Izz
 z_sc = 0.027624002859342803 + z_hinge
 J = 8.275514338203897e-06
-E = 1
-G = 1
+E = 73.1*10**6 #KPa
+G = 20*10**6 #kPa
 
 x, R1z, R2z, R3z, Ra1, R1y, R2y, R3y, C1, C2, C3, C4, C5 = symbols('x R1z R2z R3z Ra1 R1y R2y R3y C1 C2 C3 C4 C5', real=True)
 
@@ -115,8 +115,8 @@ q2splines, q2 = intSpline(q1splines,xarray)
 q3splines, q3 = intSpline(q2splines,xarray)
 q4splines, q4 = intSpline(q3splines,xarray)
 
-m = np.transpose(np.vstack((dqm,dqm)))
-m0splines = d3splines(m,xarray,0)
+dm = np.transpose(np.vstack((dqm,dqm)))
+m0splines = d3splines(dm,xarray,0)
 m1splines, m1 = intSpline(m0splines,xarray)
 m2splines, m2 = intSpline(m1splines,xarray)
 m3splines, m3 = intSpline(m2splines,xarray)
@@ -126,7 +126,10 @@ m4splines, m4 = intSpline(m3splines,xarray)
 #
 def Mac(x,i):
     if i == 0:
-        return 1
+        if x < 0:
+            return 0
+        else:
+            return 1
     else:
         return Heaviside(x)*x**i
 
@@ -160,17 +163,17 @@ def Torque(x):
     for j in range(len(xarray)-1):
         if max(xarray[j],x) != x:
             l = j-1
-    temp = m[l][0]
+    temp = m1splines[l,0]*x + m1splines[l,1]
     return base+temp
 
 def twist(x):
-    base = -ha/2*cos(theta)*P*Mac(x-xa2,1) + z_sc*sin(theta)*P*Mac(x-xa2,1) + ha/2*cos(theta)*Ra1*Mac(x-xa1,1) - z_sc*sin(theta)*Ra1*Mac(x-xa1,1) - (z_sc-z_hinge)*R1y*Mac(x-x1,1) - (z_sc-z_hinge)*R2y*Mac(x-x2,1) - (z_sc-z_hinge)*R3y*Mac(x-x3,1)
+    base = -ha/2*cos(theta)*P*Mac(x-xa2,1) + z_sc*sin(theta)*P*Mac(x-xa2,1) + ha/2*cos(theta)*Ra1*Mac(x-xa1,1) - z_sc*sin(theta)*Ra1*Mac(x-xa1,1) - (z_sc-z_hinge)*R1y*Mac(x-x1,1) - (z_sc-z_hinge)*R2y*Mac(x-x2,1) - (z_sc-z_hinge)*R3y*Mac(x-x3,1) + C5
     l = -1
     for j in range(len(xarray)-1):
         if max(xarray[j],x) != x:
             l = j-1
-    temp = m1splines[l,0]*x + m1splines[l,1]
-    return base+temp
+    temp = m2splines[l,0]*x + m2splines[l,1]
+    return (base+temp)/(G*J)
 
 def defly(x):
     base = (-1/(E*I_zz))*(-R1y/6*Mac(x-x1,3) - R2y/6*Mac(x-x2,3) - R3y/6*Mac(x-x3,3) - sin(theta)*Ra1/6*Mac(x-xa1,3) + sin(theta)*P/6*Mac(x-xa2,3) + C1*x + C2)
@@ -199,24 +202,24 @@ system = [Sz(la),
 sol = solve(system)
 print(sol)  
 # Values
-C1 = 0.279519165731257
-C2 = -0.0384445931088122
-C3 = -0.417965528308128
-C4 = 0.0619789183565207
-C5 = 4587.38387648207
-R1y = -3.24159865890804
-R1z = -12.3218865035638
-R2y = 5.00062052855391
-R2z = 24.8263794419833
-R3y = -0.607282578573421
-R3z = -0.924661188757137
-Ra1 = 25.0162567249494
+C1 = -856.826048389909 
+C2 = 1111.24391723489 
+C3 = 0.143408535198873 
+C4 = -0.0213678717446321 
+C5 = 0.665268525843958 
+R1y = 75.0037396172511 
+R1z = -5.24585405391400 
+R2y = -111.383785896061 
+R2z = 2.47872225235871 
+R3y = 34.4705541117598 
+R3z = 8.07050893266608 
+Ra1 = 31.9994523128544
 
 xx = np.linspace(0,la,200)
 y1 = np.array([])
 y2 = np.array([])
 for i in xx:
-    y1 = np.append(y1, twist(i)-twist(0))    
+    y1 = np.append(y1, twist(i))    
     y2 = np.append(y2, Torque(i))    
 y1 = y1*180/np.pi
 plt.close()

@@ -97,7 +97,7 @@ def resultantload(splines, zarray, z_hinge):
         cop = 0
 #    print(cop)
 #    print(dq)
-    dqm = abs(dq*(z_hinge-cop))
+    dqm = -abs(dq*(z_hinge-cop))
     
     return dq, dqm, cop
 
