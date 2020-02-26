@@ -34,9 +34,6 @@ tau_yz = 1
 
 Y = []
 
-   
-#print(max(Y))
-#Y.index(max(Y))
 
 
 #stresses in cross section
