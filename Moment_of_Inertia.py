@@ -127,10 +127,10 @@ if plot:
     for i in np.arange(-np.pi/2,np.pi/2,0.1):
         xcirc.append(np.cos(i))
         ycirc.append(np.sin(i))
-    xcirc = np.array(xcirc)*-ha/2 + ha/2
+    xcirc = np.array(xcirc)*ha/2- ha/2
     ycirc = np.array(ycirc)*ha/2
-    xcirc = np.insert(xcirc,0, Ca)
-    xcirc = np.append(xcirc, Ca)
+    xcirc = np.insert(xcirc,0, -Ca)
+    xcirc = np.append(xcirc, -Ca)
     ycirc = np.insert(ycirc,0, 0)
     ycirc = np.append(ycirc, 0)
     fig = plt.gca()
