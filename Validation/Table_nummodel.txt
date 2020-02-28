@@ -1,0 +1,10 @@
+\begin{tabular}{lrrrr}
+\hline
+ Point      &     |F| &   Fx &      Fy &      Fz \\
+\hline
+ Hinge 1    & 	    - &    0 &  12.479 & -12.641 \\
+ Hinge 2    &       - &    0 & -43.230 &  -2.665 \\
+ Hinge 3    & 	    - &    0 &  20.368 &  12.411 \\
+ Actuator 1 & 100.678 &    0 &       - &       - \\
+\hline
+\end{tabular}
