@@ -35,8 +35,8 @@ datalist = np.pad(datalist, 1, 'constant')
 #calculating the z and x coordinates:
 Nx = len(datalist[0])
 Nz = len(datalist)
-Ca = 0.484
-la = 1.691
+Ca = 0.605
+la = 2.661
 
 thetax = np.array([])
 thetaz = np.array([])
@@ -62,13 +62,13 @@ zarray = np.append(zarray,-Ca)
 
 
 #Other Data
-ha = 0.173 #m
+ha = 0.205 #m
 z_hinge = ha/2 #m, z position of hinge line
-theta = 26*np.pi/180 #radians
-x1 = 0.149
-x2 = 0.554
-x3 = 1.541
-xa = 0.272
+theta = 28*np.pi/180 #radians
+x1 = 0.172
+x2 = 1.211
+x3 = 2.591
+xa = 0.35
 xa1 = la/2 - xa/2
 xa2 = la/2 + xa/2
 y1 = 0.00681*cos(theta)
@@ -78,14 +78,14 @@ z1 = 0
 z2 = 0
 z3 = 0
 a1 = 0
-P = 37.9
+P = 97.4
 
 I_yy = Iyy
 I_zz = Izz
 z_sc = 0.027624002859342803 + z_hinge
 J = 8.275514338203897e-06
 E = 73.1*10**6 #KPa
-G = 20*10**6 #kPa
+G = 28*10**6 #kPa
 
 x, R1z, R2z, R3z, Ra1, R1y, R2y, R3y, C1, C2, C3, C4, C5 = symbols('x R1z R2z R3z Ra1 R1y R2y R3y C1 C2 C3 C4 C5', real=True)
 

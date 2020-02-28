@@ -80,7 +80,8 @@ for x in range(0,int(l_a/dx)):
         tau_yz_lst.append(tau_yz(i, sy))
 
 for k in range(0,len(sigma_x)):
-    Y.append((0.5*((sigma_x[k]-sigma_y[k])**2+(sigma_y[k]-sigma_z[k])**2+(sigma_z[k]-sigma_x[k])**2)+3*tau_yz_lst[k]**2)**0.5)
+    #Y.append((0.5*((sigma_x[k]-sigma_y[k])**2+(sigma_y[k]-sigma_z[k])**2+(sigma_z[k]-sigma_x[k])**2)+3*tau_yz_lst[k]**2)**0.5)
+    Y.append((3*tau_yz_lst[k]**2)**0.5)
 
 print(max(Y))   
 

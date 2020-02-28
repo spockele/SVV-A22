@@ -2,13 +2,13 @@
 #input data
 import math as m
 import numpy as np
+from Moment_of_Inertia import Izz
 Sy=1
 t_skin=1.1/1000   #m
-t_spar=2.5/1000   #m
-Izz=1.2221869037118118e-05
-h=17.3/100      #m
+t_spar=2.8/1000   #m
+h=0.205      #m
 r=h/2
-ca=0.484      #m
+ca=0.605     #m
 lsk=((ca-r)**2+(r**2))**0.5
 alpha=m.acos((ca-r)/lsk)
 l=r*m.sin(alpha) #moment arm for shear force for slanting bit

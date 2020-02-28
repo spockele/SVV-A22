@@ -13,14 +13,14 @@ import matplotlib.pyplot as plt
 plot = True 
 
 #Data of the aileron cross section and stringers
-Ca = 0.484 #[m]
-ha = 0.173 #[m]
+Ca = 0.605 #[m]
+ha = 0.205 #[m]
 nstr = 13
 tstr = 1.2e-3 #[m]
-hstr = 1.4e-2 #[m]
-wstr = 1.8e-2 #[m]
+hstr = 1.6e-2 #[m]
+wstr = 1.9e-2 #[m]
 tsk = 1.1e-3 #[m]
-tsp = 2.5e-3 #[m]
+tsp = 2.8e-3 #[m]
 
 #Verification values
 Izzver = 5.8159389575991465e-06
