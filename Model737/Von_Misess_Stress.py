@@ -8,7 +8,7 @@ Maximum stress calculations using Von
 mises stress
 """
 
-l_a = 1.691 #[m] span of aileron
+l_a = 2.661 #[m] span of aileron
 from Moment_of_Inertia import *
 from main import *
 import numpy as np

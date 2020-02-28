@@ -1,5 +1,5 @@
 from scratch_1 import *
-x=2.771   #m
+x=1.691   #m
 T=1
 G=28*10**9  #pa
 theta=m.radians(26)   #radians
