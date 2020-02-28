@@ -32,8 +32,8 @@ datalist = np.pad(datalist, 1, 'constant')
 #calculating the z and x coordinates:
 Nx = len(datalist[0])
 Nz = len(datalist)
-Ca = 0.484
-la = 1.691
+Ca = 0.605
+la = 2.661
 
 thetax = np.array([])
 thetaz = np.array([])

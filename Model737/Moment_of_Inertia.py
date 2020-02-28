@@ -15,7 +15,11 @@ plot = True
 #Data of the aileron cross section and stringers
 Ca = 0.605 #[m]
 ha = 0.205 #[m]
+<<<<<<< HEAD
 nstr = 15
+=======
+nstr = 13
+>>>>>>> b9f816b790f8e296eaf0d19b5647a57a3a3f966d
 tstr = 1.2e-3 #[m]
 hstr = 1.6e-2 #[m]
 wstr = 1.9e-2 #[m]
