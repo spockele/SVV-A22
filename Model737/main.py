@@ -91,9 +91,9 @@ x, R1z, R2z, R3z, Ra1, R1y, R2y, R3y, C1, C2, C3, C4, C5 = symbols('x R1z R2z R3
 
 ####################### Calculating the Distribution #########################
 # Unit test for correct center of pressure
-#datalist = np.ones((83,43))
-#xarray = np.arange(0,Ca,Ca/43)
-#zarray = np.arange(0,la,la/83)
+datalist = np.ones((83,43))
+xarray = np.arange(0,Ca,Ca/43)
+zarray = np.arange(0,la,la/83)
 
 dq = np.array([])
 dqm = np.array([])
