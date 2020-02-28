@@ -82,7 +82,7 @@ P = 37.9
 
 I_yy = Iyy
 I_zz = Izz
-z_sc = 0.027624002859342803 + z_hinge
+z_sc = -0.027624002859342803 + z_hinge
 J = 8.275514338203897e-06
 E = 73.1*10**6 #KPa
 G = 20*10**6 #kPa
@@ -134,10 +134,10 @@ def Mac(x,i):
         return Heaviside(x)*x**i
 
 def Sz(x):
-    return R1z*Mac(x-x1,0) + R2z*Mac(x-x2,0) + R3z*Mac(x-x3,0) + cos(theta)*Ra1*Mac(x-xa1,0) - cos(theta)*P*Mac(x-xa2,0)
+    return - R1z*Mac(x-x1,0) - R2z*Mac(x-x2,0) - R3z*Mac(x-x3,0) + cos(theta)*Ra1*Mac(x-xa1,0) - cos(theta)*P*Mac(x-xa2,0)
 
 def Sy(x):
-    base = -R1y*Mac(x-x1,0) - R2y*Mac(x-x2,0) - R3y*Mac(x-x3,0) - sin(theta)*Ra1*Mac(x-xa1,0) + sin(theta)*P*Mac(x-xa2,0)
+    base = - R1y*Mac(x-x1,0) - R2y*Mac(x-x2,0) - R3y*Mac(x-x3,0) - sin(theta)*Ra1*Mac(x-xa1,0) + sin(theta)*P*Mac(x-xa2,0)
     l = -1
     for j in range(len(xarray)-1):
         if max(xarray[j],x) != x:
@@ -167,7 +167,7 @@ def Torque(x):
     return base+temp
 
 def twist(x):
-    base = -ha/2*cos(theta)*P*Mac(x-xa2,1) + z_sc*sin(theta)*P*Mac(x-xa2,1) + ha/2*cos(theta)*Ra1*Mac(x-xa1,1) - z_sc*sin(theta)*Ra1*Mac(x-xa1,1) - (z_sc-z_hinge)*R1y*Mac(x-x1,1) - (z_sc-z_hinge)*R2y*Mac(x-x2,1) - (z_sc-z_hinge)*R3y*Mac(x-x3,1) + C5
+    base = -ha/2*cos(theta)*P*Mac(x-xa2,1) + z_sc*sin(theta)*P*Mac(x-xa2,1) + ha/2*cos(theta)*Ra1*Mac(x-xa1,1) - z_sc*sin(theta)*Ra1*Mac(x-xa1,1) - (z_sc-z_hinge)*R1y*Mac(x-x1,1) - (z_sc-z_hinge)*R2y*Mac(x-x2,1) - (z_sc-z_hinge)*R3y*Mac(x-x3,1) + C5*G*J
     l = -1
     for j in range(len(xarray)-1):
         if max(xarray[j],x) != x:
@@ -202,27 +202,29 @@ system = [Sz(la),
 sol = solve(system)
 print(sol)  
 # Values
-C1 = -856.826048389909 
-C2 = 1111.24391723489 
-C3 = 0.143408535198873 
-C4 = -0.0213678717446321 
-C5 = 0.665268525843958 
-R1y = 75.0037396172511 
-R1z = -5.24585405391400 
-R2y = -111.383785896061 
-R2z = 2.47872225235871 
-R3y = 34.4705541117598 
-R3z = 8.07050893266608 
-Ra1 = 31.9994523128544
-
+C1  = -856.830644414429
+C2  = 1111.25354974548
+C3  = 0.114523596594499
+C4  = -0.0170640158925803
+C5  = 0.00373204882519492
+R1y  = 75.4421403902075
+R1z  = -4.18924907524461
+R2y  = -114.056903234555
+R2z  = -3.22446100648544
+R3y  = 34.2661691293259
+R3z  = 7.71618793903280
+Ra1  = 37.5634625490141
 xx = np.linspace(0,la,200)
 y1 = np.array([])
 y2 = np.array([])
 for i in xx:
-    y1 = np.append(y1, twist(i))    
-    y2 = np.append(y2, Torque(i))    
-y1 = y1*180/np.pi
+    y1 = np.append(y1, defly(i))    
+    y2 = np.append(y2, deflz(i))    
 plt.close()
-plt.plot(xx,y1,'r')
-plt.plot(xx,y2,'b')
+plt.xlabel('x [m]')
+plt.ylabel('deflection(x) [m]')
+plt.title('Deflection along the aileron span')
+plt.plot(xx,y1,'r',label='deflection in y')
+plt.plot(xx,y2,'b',label='deflection in z')
+plt.legend()
 plt.show()
