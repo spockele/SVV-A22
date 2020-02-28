@@ -298,7 +298,7 @@ def main(case, tpe, view):
     cmap = cm.ScalarMappable(norm=normal, cmap=plt.viridis())
     cbar = plt.colorbar(cmap)
 
-    cbt = "Von Mises stress" if tpe == "VMi" else "Shear stress"
+    cbt = "Von Mises stress [GPa]" if tpe == "VMi" else "Shear stress [GPa]"
     cbar.set_label(cbt)
 
     if case == "Bending":
@@ -309,17 +309,14 @@ def main(case, tpe, view):
         ttl = "Only jammed actuator case"
     else:
         ttl = ""
-    fig.suptitle(f"{cbt} distribution in the deformed aileron\n{ttl}")
-    ax1.set_title("Entire Aileron", pad=50)
-    ax2.set_title(f"Cross section with maximum stress at x={x_mdl}mm")
 
-    ax1.set_xlabel("X")
-    ax1.set_ylabel("Z")
-    ax1.set_zlabel("Y")
-    ax2.set_xlabel("Z")
-    ax2.set_ylabel("Y")
+    ax1.set_xlabel("X [mm]")
+    ax1.set_ylabel("Z [mm]")
+    ax1.set_zlabel("Y [mm]")
+    ax2.set_xlabel("Z [mm]")
+    ax2.set_ylabel("Y [mm]")
 
-    plt.subplots_adjust(0, 0.05, 0.95, 0.90, 0.15, 0.15)
+    plt.subplots_adjust(0.05, 0.05, 0.95, 0.95, 0.15, 0.15)
     if view == "top":
         ax1.view_init(azim=40, elev=30)
     elif view == "bottom":
@@ -331,7 +328,8 @@ def main(case, tpe, view):
 
 
 if __name__ == '__main__':
-    main("Jam_Bent", "VMi", "")
+    main("Jam_Bent", "VMi", "top")
+    main("Jam_Bent", "S12", "top")
     #for case in ("Bending", "Jam_Bent", "Jam_Straight"):
     #    for tpe in ("VMi", "S12"):
     #        for view in ("top", "bottom"):
