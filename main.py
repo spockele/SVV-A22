@@ -71,12 +71,14 @@ x3 = 1.541
 xa = 0.272
 xa1 = la/2 - xa/2
 xa2 = la/2 + xa/2
-y1 = 0.00681*cos(theta)
+d1 = 0.00681
+d3 = 0.0203
+y1 = d1*cos(theta)
 y2 = 0
-y3 = 0.0203*cos(theta)
-z1 = 0
+y3 = d3*cos(theta)
+z1 = d1*sin(theta)
 z2 = 0
-z3 = 0
+z3 = d3*sin(theta)
 a1 = 0
 P = 37.9
 
@@ -134,7 +136,7 @@ def Mac(x,i):
         return Heaviside(x)*x**i
 
 def Sz(x):
-    return - R1z*Mac(x-x1,0) - R2z*Mac(x-x2,0) - R3z*Mac(x-x3,0) + cos(theta)*Ra1*Mac(x-xa1,0) - cos(theta)*P*Mac(x-xa2,0)
+    return -(- R1z*Mac(x-x1,0) - R2z*Mac(x-x2,0) - R3z*Mac(x-x3,0) + cos(theta)*Ra1*Mac(x-xa1,0) - cos(theta)*P*Mac(x-xa2,0))
 
 def Sy(x):
     base = - R1y*Mac(x-x1,0) - R2y*Mac(x-x2,0) - R3y*Mac(x-x3,0) - sin(theta)*Ra1*Mac(x-xa1,0) + sin(theta)*P*Mac(x-xa2,0)
@@ -152,7 +154,7 @@ def Mz(x):
         if max(xarray[j],x) != x:
             l = j-1
     temp = q2splines[l,0]*x + q2splines[l,1]
-    return base+temp
+    return (base+temp)
 
 def My(x):
     return R1z*Mac(x-x1,1) + R2z*Mac(x-x2,1) + R3z*Mac(x-x3,1) + cos(theta)*Ra1*Mac(x-xa1,1) - cos(theta)*P*Mac(x-xa2,1)
@@ -198,33 +200,71 @@ system = [Sz(la),
        deflz(x1) - z1,
        deflz(x2) - z2,
        deflz(x3) - z3,
-       deflz(xa1) + twist(xa1)*(ha/2) - a1]
+       deflz(xa1)*cos(theta) + defly(xa1)*sin(theta) + twist(xa1)*(ha/2) - a1]
 sol = solve(system)
 print(sol)  
 # Values
-C1  = -856.830644414429
-C2  = 1111.25354974548
-C3  = 0.114523596594499
-C4  = -0.0170640158925803
-C5  = 0.00373204882519492
-R1y  = 75.4421403902075
-R1z  = -4.18924907524461
-R2y  = -114.056903234555
-R2z  = -3.22446100648544
-R3y  = 34.2661691293259
-R3z  = 7.71618793903280
-Ra1  = 37.5634625490141
+C1 = -856.756808300039; C2 = 1111.23123884183; C3 = -31.7892338942513; C4 = 14.4562135386494; C5 = -0.00485172476832893; R1y = 77.0376772716926; R1z = 284.963068074844; R2y = -120.913937040834; R2z = -423.787107363642; R3y = 34.0593497248714; R3z = 149.733271408323; Ra1 = 50.0376328252782
+
 xx = np.linspace(0,la,200)
-y1 = np.array([])
-y2 = np.array([])
+dy = np.array([])
+dz = np.array([])
+sy = np.array([])
+sz = np.array([])
+my = np.array([])
+mz = np.array([])
+torq = np.array([])
+tw = np.array([])
 for i in xx:
-    y1 = np.append(y1, defly(i))    
-    y2 = np.append(y2, deflz(i))    
+    dy = np.append(dy, defly(i))   
+    dz = np.append(dz, deflz(i))    
+    sy = np.append(sy, Sy(i)*1000)    
+    sz = np.append(sz, Sz(i)*1000)    
+    my = np.append(my, My(i)*1000)    
+    mz = np.append(mz, Mz(i)*1000)    
+    torq = np.append(torq, Torque(i)*1000)    
+    tw = np.append(tw, twist(i))     
 plt.close()
+### Deflections ###
+plt.figure(0)
 plt.xlabel('x [m]')
 plt.ylabel('deflection(x) [m]')
 plt.title('Deflection along the aileron span')
-plt.plot(xx,y1,'r',label='deflection in y')
-plt.plot(xx,y2,'b',label='deflection in z')
+plt.plot(xx,dy,'r',label='deflection in y')
+plt.plot(xx,dz,'b',label='deflection in z')
+plt.legend()
+plt.show()
+### Shears ###
+plt.figure(1)
+plt.xlabel('x [m]')
+plt.ylabel('Shear(x) [kN]')
+plt.title('Shear force along the aileron span')
+plt.plot(xx,sy,'r',label='shear in y')
+plt.plot(xx,sz,'b',label='shear in z')
+plt.legend()
+plt.show()
+### Moments ###
+plt.figure(2)
+plt.xlabel('x [m]')
+plt.ylabel('Moment(x) [kNm]')
+plt.title('Moment along the aileron span')
+plt.plot(xx,my,'r',label='moment in y')
+plt.plot(xx,mz,'b',label='moment in z')
+plt.legend()
+plt.show()
+### Torque & Twist ###
+plt.figure(3)
+plt.xlabel('x [m]')
+plt.ylabel('Torque(x) [kNm]')
+plt.title('Torque along the aileron span')
+plt.plot(xx,torq,'r',label='Torque')
+plt.legend()
+plt.show()
+### Torque & Twist ###
+plt.figure(4)
+plt.xlabel('x [m]')
+plt.ylabel('Twist(x) [degrees]')
+plt.title('Twist along the aileron span')
+plt.plot(xx,tw,'b',label='Twist')
 plt.legend()
 plt.show()

@@ -65,7 +65,6 @@ def intSpline(splines, xarray):
         p = p.definite_integral(xarray[x], xarray[x+1], 1)
         integral += p
         newPoints = np.append(newPoints, integral)
-    newPoints = np.append(newPoints,0)
     si = np.array([0, 0])
     for z in range(len(xarray)-1):
         fi0 = newPoints[z]
