@@ -137,6 +137,17 @@ class Node:
             ax.scatter([self.x], [self.z], [self.y], color='red')
             ax.quiver([self.x], [self.z], [self.y], rx*sc, rz*sc, ry*sc, color="red")
 
+    def plot_U(self, ax, case):
+        if case == "Bending":
+            _, _, dy, dz = self.U_Bend
+        elif case == "Jam_Bent":
+            _, _, dy, dz = self.U_JBen
+        elif case == "Jam_Straight":
+            _, _, dy, dz = self.U_JStr
+
+        ax.plot([self.x/1000], [dy/1000], "ro")
+        ax.plot([self.x/1000], [dz/1000], "bo")
+
 
 def read_inp(data_dict, VMi_mm, S12_mm):
     """
@@ -298,7 +309,7 @@ def main(case, tpe, view):
     cmap = cm.ScalarMappable(norm=normal, cmap=plt.viridis())
     cbar = plt.colorbar(cmap)
 
-    cbt = "Von Mises stress" if tpe == "VMi" else "Shear stress"
+    cbt = "Von Mises stress [GPa]" if tpe == "VMi" else "Shear stress [GPa]"
     cbar.set_label(cbt)
 
     if case == "Bending":
@@ -309,17 +320,14 @@ def main(case, tpe, view):
         ttl = "Only jammed actuator case"
     else:
         ttl = ""
-    fig.suptitle(f"{cbt} distribution in the deformed aileron\n{ttl}")
-    ax1.set_title("Entire Aileron", pad=50)
-    ax2.set_title(f"Cross section with maximum stress at x={x_mdl}mm")
 
-    ax1.set_xlabel("X")
-    ax1.set_ylabel("Z")
-    ax1.set_zlabel("Y")
-    ax2.set_xlabel("Z")
-    ax2.set_ylabel("Y")
+    ax1.set_xlabel("X [mm]")
+    ax1.set_ylabel("Z [mm]")
+    ax1.set_zlabel("Y [mm]")
+    ax2.set_xlabel("Z [mm]")
+    ax2.set_ylabel("Y [mm]")
 
-    plt.subplots_adjust(0, 0.05, 0.95, 0.90, 0.15, 0.15)
+    plt.subplots_adjust(0.05, 0.05, 0.95, 0.95, 0.15, 0.15)
     if view == "top":
         ax1.view_init(azim=40, elev=30)
     elif view == "bottom":
@@ -329,9 +337,27 @@ def main(case, tpe, view):
 
     plt.show()
 
+    le = (1,   2,   5,   7,   9,  11,  12,  43,  44,  57,  58,  59,  60,  61,  62,  63,
+          64,  65,  66,  67,  68,  69,  70,  71,  72,  73,  74,  75,  76,  77,  78,  79,
+          80,  81,  82,  83,  84,  85,  86,  87,  88,  89,  90,  91,  92,  93,  94,  95,
+          96,  97,  98,  99, 100, 101, 102, 103, 156, 157, 158, 159, 160, 161, 173, 174,
+          175, 176, 177, 178, 190, 191, 192, 193, 194, 195, 212, 213, 214, 215, 216, 217,
+          218, 219, 220, 221, 222, 223, 224, 225, 226, 227, 228, 229, 230, 231, 232, 233,
+          234, 235, 236, 237, 238, 239, 240, 241, 242, 243, 244, 245
+          )
+
+    fig = plt.figure()
+    ax1 = fig.add_subplot(111)
+    [no.plot_U(ax1, case) for n, no in node_dict.items() if n in le]
+    ax1.set_xlabel("x [m]")
+    ax1.set_ylabel("Deflection [m]")
+    ax1.legend(["Deflection in y", "Deflection in x"])
+    plt.show()
+
 
 if __name__ == '__main__':
-    main("Jam_Bent", "VMi", "")
+    main("Jam_Bent", "VMi", "top")
+    main("Jam_Bent", "S12", "top")
     #for case in ("Bending", "Jam_Bent", "Jam_Straight"):
     #    for tpe in ("VMi", "S12"):
     #        for view in ("top", "bottom"):

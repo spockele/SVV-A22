@@ -15,7 +15,9 @@ plot = True
 #Data of the aileron cross section and stringers
 Ca = 0.605 #[m]
 ha = 0.205 #[m]
-nstr = 13
+#<<<<<<< HEAD
+nstr = 15
+#>>>>>>> b9f816b790f8e296eaf0d19b5647a57a3a3f966d
 tstr = 1.2e-3 #[m]
 hstr = 1.6e-2 #[m]
 wstr = 1.9e-2 #[m]
@@ -143,5 +145,3 @@ if plot:
     plt.scatter(Cz,0)
     plt.scatter(zsp, 0)
     plt.show()
-print(straightlen)
-
