@@ -145,8 +145,8 @@ class Node:
         elif case == "Jam_Straight":
             _, _, dy, dz = self.U_JStr
 
-        ax.plot([self.x/1000], [dy/1000], "ro")
-        ax.plot([self.x/1000], [dz/1000], "bo")
+        ax.plot([self.x/1000], [dy/1000], "ro", markersize=1)
+        ax.plot([self.x/1000], [dz/1000], "bo", markersize=1)
 
 
 def read_inp(data_dict, VMi_mm, S12_mm):
@@ -351,7 +351,7 @@ def main(case, tpe, view):
     [no.plot_U(ax1, case) for n, no in node_dict.items() if n in le]
     ax1.set_xlabel("x [m]")
     ax1.set_ylabel("Deflection [m]")
-    ax1.legend(["Deflection in y", "Deflection in x"])
+    ax1.legend(["Deflection in y", "Deflection in z"])
     plt.show()
 
 
