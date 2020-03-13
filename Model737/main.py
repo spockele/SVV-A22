@@ -82,8 +82,8 @@ P = 97.4
 
 I_yy = Iyy
 I_zz = Izz
-z_sc = 0.027624002859342803 + z_hinge
-J = 8.275514338203897e-06
+z_sc = -0.027624002859342803 + z_hinge
+J = 1.6825250370985492e-05
 E = 73.1*10**6 #KPa
 G = 28*10**6 #kPa
 
@@ -134,10 +134,10 @@ def Mac(x,i):
         return Heaviside(x)*x**i
 
 def Sz(x):
-    return R1z*Mac(x-x1,0) + R2z*Mac(x-x2,0) + R3z*Mac(x-x3,0) + cos(theta)*Ra1*Mac(x-xa1,0) - cos(theta)*P*Mac(x-xa2,0)
+    return -(- R1z*Mac(x-x1,0) - R2z*Mac(x-x2,0) - R3z*Mac(x-x3,0) + cos(theta)*Ra1*Mac(x-xa1,0) - cos(theta)*P*Mac(x-xa2,0))
 
 def Sy(x):
-    base = -R1y*Mac(x-x1,0) - R2y*Mac(x-x2,0) - R3y*Mac(x-x3,0) - sin(theta)*Ra1*Mac(x-xa1,0) + sin(theta)*P*Mac(x-xa2,0)
+    base = - R1y*Mac(x-x1,0) - R2y*Mac(x-x2,0) - R3y*Mac(x-x3,0) - sin(theta)*Ra1*Mac(x-xa1,0) + sin(theta)*P*Mac(x-xa2,0)
     l = -1
     for j in range(len(xarray)-1):
         if max(xarray[j],x) != x:
@@ -152,7 +152,7 @@ def Mz(x):
         if max(xarray[j],x) != x:
             l = j-1
     temp = q2splines[l,0]*x + q2splines[l,1]
-    return base+temp
+    return (base+temp)
 
 def My(x):
     return R1z*Mac(x-x1,1) + R2z*Mac(x-x2,1) + R3z*Mac(x-x3,1) + cos(theta)*Ra1*Mac(x-xa1,1) - cos(theta)*P*Mac(x-xa2,1)
@@ -167,7 +167,7 @@ def Torque(x):
     return base+temp
 
 def twist(x):
-    base = -ha/2*cos(theta)*P*Mac(x-xa2,1) + z_sc*sin(theta)*P*Mac(x-xa2,1) + ha/2*cos(theta)*Ra1*Mac(x-xa1,1) - z_sc*sin(theta)*Ra1*Mac(x-xa1,1) - (z_sc-z_hinge)*R1y*Mac(x-x1,1) - (z_sc-z_hinge)*R2y*Mac(x-x2,1) - (z_sc-z_hinge)*R3y*Mac(x-x3,1) + C5
+    base = -ha/2*cos(theta)*P*Mac(x-xa2,1) + z_sc*sin(theta)*P*Mac(x-xa2,1) + ha/2*cos(theta)*Ra1*Mac(x-xa1,1) - z_sc*sin(theta)*Ra1*Mac(x-xa1,1) - (z_sc-z_hinge)*R1y*Mac(x-x1,1) - (z_sc-z_hinge)*R2y*Mac(x-x2,1) - (z_sc-z_hinge)*R3y*Mac(x-x3,1) + C5*G*J
     l = -1
     for j in range(len(xarray)-1):
         if max(xarray[j],x) != x:
@@ -198,31 +198,71 @@ system = [Sz(la),
        deflz(x1) - z1,
        deflz(x2) - z2,
        deflz(x3) - z3,
-       deflz(xa1) + twist(xa1)*(ha/2) - a1]
+       deflz(xa1)*cos(theta) + defly(xa1)*sin(theta) + twist(xa1)*(ha/2) - a1]
 sol = solve(system)
 print(sol)  
 # Values
-C1 = -7198.75274179719 
-C2 = 14607.6260287575 
-C3 = 2.27188428673498 
-C4 = -0.390764097318417 
-C5 = 0.319684787967052
-R1y = 12.4791795238527
-R1z = -12.6407286520606 
-R2y = -43.2303087688269 
-R2z = -2.66458088954677
-R3y = 20.3679700072242
-R3z =  12.4105963431757
-Ra1 = 100.678465473878
+C1 = 68.7367267318332; C2 = -31.8172589350751; C3 = 2.05467183635670; C4 = -0.353403555853351; C5 = 0.00350372178238043; R1y = 3.64173410338397; R1z = -11.4599383559117; R2y = -113.396459809170; R2z = -203.382149295181; R3y = 22.8315585022762; R3z = 391.477615083488; Ra1 = 297.452108257594;
 
 xx = np.linspace(0,la,200)
-y1 = np.array([])
-y2 = np.array([])
+dy = np.array([])
+dz = np.array([])
+sy = np.array([])
+sz = np.array([])
+my = np.array([])
+mz = np.array([])
+torq = np.array([])
+tw = np.array([])
 for i in xx:
-    y1 = np.append(y1, twist(i))    
-    y2 = np.append(y2, Torque(i))    
-y1 = y1*180/np.pi
+    dy = np.append(dy, defly(i))   
+    dz = np.append(dz, deflz(i))    
+    sy = np.append(sy, Sy(i)*1000)    
+    sz = np.append(sz, Sz(i)*1000)    
+    my = np.append(my, My(i)*1000)    
+    mz = np.append(mz, Mz(i)*1000)    
+    torq = np.append(torq, Torque(i)*1000)    
+    tw = np.append(tw, twist(i))     
 plt.close()
-plt.plot(xx,y1,'r')
-plt.plot(xx,y2,'b')
+### Deflections ###
+plt.figure(0)
+plt.xlabel('x [m]')
+plt.ylabel('deflection(x) [m]')
+plt.title('Deflection along the aileron span')
+plt.plot(xx,dy,'r',label='deflection in y')
+plt.plot(xx,dz,'b',label='deflection in z')
+plt.legend()
+plt.show()
+### Shears ###
+plt.figure(1)
+plt.xlabel('x [m]')
+plt.ylabel('Shear(x) [kN]')
+plt.title('Shear force along the aileron span')
+plt.plot(xx,sy,'r',label='shear in y')
+plt.plot(xx,sz,'b',label='shear in z')
+plt.legend()
+plt.show()
+### Moments ###
+plt.figure(2)
+plt.xlabel('x [m]')
+plt.ylabel('Moment(x) [kNm]')
+plt.title('Moment along the aileron span')
+plt.plot(xx,my,'r',label='moment in y')
+plt.plot(xx,mz,'b',label='moment in z')
+plt.legend()
+plt.show()
+### Torque & Twist ###
+plt.figure(3)
+plt.xlabel('x [m]')
+plt.ylabel('Torque(x) [kNm]')
+plt.title('Torque along the aileron span')
+plt.plot(xx,torq,'r',label='Torque')
+plt.legend()
+plt.show()
+### Torque & Twist ###
+plt.figure(4)
+plt.xlabel('x [m]')
+plt.ylabel('Twist(x) [degrees]')
+plt.title('Twist along the aileron span')
+plt.plot(xx,tw,'b',label='Twist')
+plt.legend()
 plt.show()
