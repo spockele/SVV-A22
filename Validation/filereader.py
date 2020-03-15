@@ -9,9 +9,20 @@ import mpl_toolkits.mplot3d as axes3d
 import numpy as np
 import tabulate as tab
 
+ha = 0.205
+tsk = 1.1e-3 #[m]
+tsp = 2.8e-3 #[m]
+le = (1,   2,   5,   7,   9,  11,  12,  43,  44,  57,  58,  59,  60,  61,  62,  63,
+      64,  65,  66,  67,  68,  69,  70,  71,  72,  73,  74,  75,  76,  77,  78,  79,
+      80,  81,  82,  83,  84,  85,  86,  87,  88,  89,  90,  91,  92,  93,  94,  95,
+      96,  97,  98,  99, 100, 101, 102, 103, 156, 157, 158, 159, 160, 161, 173, 174,
+      175, 176, 177, 178, 190, 191, 192, 193, 194, 195, 212, 213, 214, 215, 216, 217,
+      218, 219, 220, 221, 222, 223, 224, 225, 226, 227, 228, 229, 230, 231, 232, 233,
+      234, 235, 236, 237, 238, 239, 240, 241, 242, 243, 244, 245
+      )
 
 class Element:
-    def __init__(self, num, nodes, node_dct, data_dict, VMi_mm, S12_mm):
+    def __init__(self, num, nodes, node_dct, data_dict, loc):
         self.num = num
         self.nodes = nodes
 
@@ -23,16 +34,23 @@ class Element:
         self.xs, self.ys, self.zs = None, None, None
         self.z, self.y, self.x = None, None, None
 
-        self.data = {case: {"VMi": (data_dict[case]["VM_S12"][self.num][0] + data_dict[case]["VM_S12"][self.num][1]) / 2,
-                            "S12": (data_dict[case]["VM_S12"][self.num][2] + data_dict[case]["VM_S12"][self.num][3]) / 2
-                            }
-                     for case in data_dict
-                     }
+        if loc == 'skin':
+            t = tsk
+        elif loc == 'spar':
+            t = tsp
+        else:
+            t = 0
 
-        self.data_norm = {case: {"VMi": (self.data[case]["VMi"] - VMi_mm[case][0]) / (VMi_mm[case][1] - VMi_mm[case][0]),
-                                 "S12": (self.data[case]["S12"] - S12_mm[case][0]) / (S12_mm[case][1] - S12_mm[case][0])}
-                          for case in self.data
-                          }
+        self.t = t
+
+        self.data = {
+            case: {"VMi": (data_dict[case]["VM_S12"][self.num][0] + data_dict[case]["VM_S12"][self.num][1]) / 2,
+                   "S12": (data_dict[case]["VM_S12"][self.num][2]*t + data_dict[case]["VM_S12"][self.num][3]*t) / 2
+                   }
+            for case in data_dict
+            }
+
+        self.data_norm = None
 
     def __repr__(self):
         return f'Element {self.num}: nodes: \n{self.corners}\n'
@@ -42,6 +60,13 @@ class Element:
             return min(c.x for c in self.corners) < min(c.x for c in other.corners)
         else:
             raise TypeError(f"Cannot compare Element to {type(other)}")
+
+    def norm(self, VMi_mm, S12_mm):
+        self.data_norm = {
+            case: {"VMi": (self.data[case]["VMi"] - VMi_mm[case][0]) / (VMi_mm[case][1] - VMi_mm[case][0]),
+                   "S12": (self.data[case]["S12"] - S12_mm[case][0]) / (S12_mm[case][1] - S12_mm[case][0])}
+            for case in self.data
+            }
 
     def plot_self(self, ax, case, tpe):
         self.xs, self.ys, self.zs = np.zeros((2, 2)), np.zeros((2, 2)), np.zeros((2, 2))
@@ -69,10 +94,11 @@ class Element:
     def plot_2d(self, ax, case, tpe):
         self.find_2d(case)
 
-        cmp = plt.get_cmap('viridis')
+        cmp = plt.get_cmap('jet')
         col = cmp(self.data_norm[case][tpe])
+        z = [0-c for c in self.z]
 
-        ax.plot(self.z, self.y, color=col)
+        ax.plot(z, self.y, color=col)
 
 
 class Node:
@@ -149,7 +175,7 @@ class Node:
         ax.plot([self.x/1000], [dz/1000], "bo", markersize=1)
 
 
-def read_inp(data_dict, VMi_mm, S12_mm):
+def read_inp(data_dict):
     """
     Reads the Abaqus input file
     :return:
@@ -160,10 +186,14 @@ def read_inp(data_dict, VMi_mm, S12_mm):
         elements = False
         assembly = False
         s = False
+        sp = False
+        sk = False
         node_dct = {}
         elem_lst = []
         asem_lst = []
         node_lst = []
+        spar = []
+        skin = []
 
         for line in f:
             if line == "** ASSEMBLY\n":
@@ -177,7 +207,17 @@ def read_inp(data_dict, VMi_mm, S12_mm):
                 s = False
 
             if line == "*Node\n":
+                sk = False
                 nodes = True
+                s = False
+
+            if line == "*Elset, elset=Skin\n":
+                sp = False
+                sk = True
+                s = False
+
+            if line == "*Elset, elset=Spar\n":
+                sp = True
                 s = False
 
             if assembly and s:
@@ -194,7 +234,9 @@ def read_inp(data_dict, VMi_mm, S12_mm):
                 for i, data_pt in enumerate(data_line):
                     data_line[i] = int(data_pt)
 
-                elem_lst.append(Element(data_line[0], data_line[1:], node_dct, data_dict, VMi_mm, S12_mm))
+                loc = 'skin' if data_line[0] in skin else 'spar'
+
+                elem_lst.append(Element(data_line[0], data_line[1:], node_dct, data_dict, loc))
 
             if nodes and s:
                 data_line = line.strip("\n").replace(' ', '')
@@ -206,9 +248,19 @@ def read_inp(data_dict, VMi_mm, S12_mm):
                 node_dct[data_line[0]] = node_inst
                 node_lst.append(node_inst)
 
+            if sk and s:
+                data_line = line.strip("\n").split(', ')
+                points = [float(dat) for dat in data_line]
+                skin += points
+
+            if sp and s:
+                data_line = line.strip("\n").split(', ')
+                points = [float(dat) for dat in data_line]
+                spar += points
+
             s = True
 
-    return node_dct, node_lst, elem_lst, asem_lst
+    return node_dct, node_lst, elem_lst, asem_lst, spar, skin
 
 
 def read_rpt():
@@ -232,16 +284,30 @@ def read_rpt():
             if "Step" in line:
                 case, tpe = line.strip("\n").replace("Step: ", "").split(", ")
 
-        VMi_lst = {}
-        S12_lst = {}
-        for case in data_dict:
-            VMi_lst[case] = [(data_dict[case]["VM_S12"][elm][0] + data_dict[case]["VM_S12"][elm][1]) / 2 for elm in data_dict[case]["VM_S12"]]
-            S12_lst[case] = [(data_dict[case]["VM_S12"][elm][2] + data_dict[case]["VM_S12"][elm][3]) / 2 for elm in data_dict[case]["VM_S12"]]
+    return data_dict
 
-        VMi = {case: (min(VMi_lst[case]), max(VMi_lst[case])) for case in VMi_lst}
-        S12 = {case: (min(S12_lst[case]), max(S12_lst[case])) for case in S12_lst}
 
-    return data_dict, VMi, S12
+def minmax_stress(elem_list):
+    VMi_list = {"Bending": [],
+                "Jam_Bent": [],
+                "Jam_Straight": []
+                }
+
+    S12_list = {"Bending": [],
+                "Jam_Bent": [],
+                "Jam_Straight": []
+                }
+
+    for elem in elem_list:
+        for case in elem.data:
+            VMi_list[case].append(elem.data[case]["VMi"])
+            S12_list[case].append(elem.data[case]["S12"])
+
+    for case in VMi_list:
+        VMi_list[case] = (min(VMi_list[case]), max(VMi_list[case]))
+        S12_list[case] = (min(S12_list[case]), max(S12_list[case]))
+
+    return VMi_list, S12_list
 
 
 def table_reaction(data_dict, case):
@@ -269,8 +335,12 @@ def table_reaction(data_dict, case):
 def main(case, tpe, view):
     # Pre-Processing of the data files
     print(f"\nPlot_{case}_{tpe}_{view}\n-----------------------------------------------------")
-    data, VMi, S12 = read_rpt()
-    node_dict, node, elem, asem = read_inp(data, VMi, S12)
+    data = read_rpt()
+    node_dict, node, elem, asem, spar, skin = read_inp(data)
+    VMi, S12 = minmax_stress(elem)
+
+    for el in elem:
+        el.norm(VMi, S12)
 
     table_reaction(data, case)
 
@@ -286,65 +356,53 @@ def main(case, tpe, view):
 
     # Plotting of the data
     fig = plt.figure()
-    ax1 = fig.add_subplot(121, projection='3d')
-    ax2 = fig.add_subplot(122)
-    ax1.set_ylim(0 - 600, 100)
-    ax1.set_zlim(0 - 350, 350)
-    ax2.set_xlim(0 - 550, 150)
-    ax2.set_ylim(0 - 350, 350)
+    #ax1 = fig.add_subplot(121, projection='3d')
+    ax2 = fig.add_subplot(111)
+    #ax1.set_ylim(0 - 600, 100)
+    #ax1.set_zlim(0 - 350, 350)
+    #ax2.set_xlim(0 - 550, 150)
+    #ax2.set_ylim(0 - 350, 350)
 
     for el in elem[idx:idx+62]:
         el.plot_2d(ax2, case, tpe)
 
     x_mdl = round(sum(elem[idx].x) / len(elem[idx].x), 2)
+    print(x_mdl)
 
-    for el in elem:
-        el.plot_self(ax1, case, tpe)
+    #for el in elem:
+    #    el.plot_self(ax1, case, tpe)
 
     # for no in asem:
     #     scale = 100 if no.num in range(5, 16) else 1
     #     no.plot_quiver(ax1, case, u=True, sc=scale)
 
-    normal = color.Normalize(vmin=mm[0], vmax=mm[1])
-    cmap = cm.ScalarMappable(norm=normal, cmap=plt.viridis())
+    if tpe == "S12":
+        vm = (mm[0]*10**9, mm[1]*10**9)
+    else:
+        vm = mm
+
+    normal = color.Normalize(vmin=vm[0], vmax=vm[1])
+    cmap = cm.ScalarMappable(norm=normal, cmap=plt.jet())
     cbar = plt.colorbar(cmap)
 
-    cbt = "Von Mises stress [GPa]" if tpe == "VMi" else "Shear stress [GPa]"
+    cbt = "Von Mises stress [GPa]" if tpe == "VMi" else "Shear flow [N/m]"
     cbar.set_label(cbt)
 
-    if case == "Bending":
-        ttl = "Bending case"
-    elif case == "Jam_Bent":
-        ttl = "Bending and jammed actuator case"
-    elif case == "Jam_Straight":
-        ttl = "Only jammed actuator case"
-    else:
-        ttl = ""
-
-    ax1.set_xlabel("X [mm]")
-    ax1.set_ylabel("Z [mm]")
-    ax1.set_zlabel("Y [mm]")
-    ax2.set_xlabel("Z [mm]")
+    #ax1.set_xlabel("X [mm]")
+    #ax1.set_ylabel("Z [mm]")
+    #ax1.set_zlabel("Y [mm]")
+    ax2.set_xlabel("-Z [mm]")
     ax2.set_ylabel("Y [mm]")
 
-    plt.subplots_adjust(0.05, 0.05, 0.95, 0.95, 0.15, 0.15)
-    if view == "top":
-        ax1.view_init(azim=40, elev=30)
-    elif view == "bottom":
-        ax1.view_init(azim=40, elev=-30)
-    else:
-        ax1.view_init(azim=40, elev=0)
+    #plt.subplots_adjust(0.05, 0.05, 0.95, 0.95, 0.15, 0.15)
+    #if view == "top":
+    #    ax1.view_init(azim=40, elev=30)
+    #elif view == "bottom":
+    #    ax1.view_init(azim=40, elev=-30)
+    #else:
+    #    ax1.view_init(azim=40, elev=0)
 
     plt.show()
-
-    le = (1,   2,   5,   7,   9,  11,  12,  43,  44,  57,  58,  59,  60,  61,  62,  63,
-          64,  65,  66,  67,  68,  69,  70,  71,  72,  73,  74,  75,  76,  77,  78,  79,
-          80,  81,  82,  83,  84,  85,  86,  87,  88,  89,  90,  91,  92,  93,  94,  95,
-          96,  97,  98,  99, 100, 101, 102, 103, 156, 157, 158, 159, 160, 161, 173, 174,
-          175, 176, 177, 178, 190, 191, 192, 193, 194, 195, 212, 213, 214, 215, 216, 217,
-          218, 219, 220, 221, 222, 223, 224, 225, 226, 227, 228, 229, 230, 231, 232, 233,
-          234, 235, 236, 237, 238, 239, 240, 241, 242, 243, 244, 245
-          )
 
     fig = plt.figure()
     ax1 = fig.add_subplot(111)
@@ -355,10 +413,35 @@ def main(case, tpe, view):
     plt.show()
 
 
+def twist(case):
+    data = read_rpt()
+    node_dict, node, elem, asem, spar, skin = read_inp(data)
+
+    leadingedge = sorted([no for no in node if no.num in le])
+    hingeline = sorted([no for no in node if (no.y, no.z) == (0, 0)])
+
+    for no in node:
+        no.displace(case)
+
+    theta = []
+    x = []
+    for i, no in enumerate(leadingedge):
+        x.append(no.x / 1000)
+        print(no, hingeline[i])
+        theta.append(np.arctan(((hingeline[i].yd - no.yd) / (0.5*ha) / 1000)) - (0.009 - 0.0162))
+
+    plt.plot(x, theta)
+    plt.xlabel("x [m]")
+    plt.ylabel("$\phi$ [-]")
+    plt.show()
+
+
 if __name__ == '__main__':
-    main("Jam_Bent", "VMi", "top")
-    main("Jam_Bent", "S12", "top")
+    exit()
+    #main("Jam_Bent", "VMi", "top")
+    #main("Jam_Bent", "S12", "top")
     #for case in ("Bending", "Jam_Bent", "Jam_Straight"):
     #    for tpe in ("VMi", "S12"):
     #        for view in ("top", "bottom"):
     #            main(case, tpe, view)
+    #twist("Jam_Bent")
