@@ -41,21 +41,21 @@ la = 2.661
 thetax = np.array([])
 thetaz = np.array([])
 
-for i in np.arange(1,43):
+for i in np.arange(1,Nx):
     thetax = np.append(thetax,np.pi*(i-1)/41)
     
-for i in np.arange(1,83):
+for i in np.arange(1,Nz):
     thetaz = np.append(thetaz,np.pi*(i-1)/81)
 
 zarray = np.array([0])
 xarray = np.array([0])
 #Spanwise
-for i in np.arange(41):
+for i in np.arange(Nx-2):
     xi = 0.5*(la/2*(1-np.cos(thetax[i]))+la/2*(1-np.cos(thetax[i+1])))
     xarray = np.append(xarray,xi)
 xarray = np.append(xarray,la)
 #Chordwise    
-for i in np.arange(81):
+for i in np.arange(Nz-2):
     zi = -0.5*(Ca/2*(1-np.cos(thetaz[i]))+Ca/2*(1-np.cos(thetaz[i+1])))
     zarray = np.append(zarray,zi) 
 zarray = np.append(zarray,-Ca) 
@@ -71,9 +71,9 @@ x3 = 2.591
 xa = 0.35
 xa1 = la/2 - xa/2
 xa2 = la/2 + xa/2
-y1 = 0.00681*cos(theta)
+y1 = 0.01154
 y2 = 0
-y3 = 0.0203*cos(theta)
+y3 = 0.0184
 z1 = 0
 z2 = 0
 z3 = 0
@@ -92,8 +92,8 @@ x, R1z, R2z, R3z, Ra1, R1y, R2y, R3y, C1, C2, C3, C4, C5 = symbols('x R1z R2z R3
 ####################### Calculating the Distribution #########################
 # Unit test for correct center of pressure
 datalist = np.ones((83,43)) * 5.54 / Ca
-xarray = np.arange(0,Ca,Ca/43)
-zarray = np.arange(0,la,la/83)
+xarray = np.arange(0,la,la/43)
+zarray = np.arange(0,Ca,Ca/83)
 
 dq = np.array([])
 dqm = np.array([])
@@ -202,7 +202,8 @@ system = [Sz(la),
 sol = solve(system)
 print(sol)  
 # Values
-C1= 581.646512154894; C2= -247.785060491597; C3= 0.419348436388933; C4= -0.0721279310588962; C5= 0.0326604304579849; R1y= -41.3013092147801; R1z= -2.59038210662116; R2y= -812.922960976183; R2z= -1863.86617827617; R3y= 58.2666729885697; R3z= 3483.91246447450; Ra1= 1929.28211528443
+C1= 10803.6934383954; C2= -20301.6461253390; C3= 2.18753024094312; C4= -0.376255201442215; C5= -0.00418341077235900; R1y= -28.6597212599907; R1z= -12.1805267683892; R2y= 18.9754137867171; R2z= -68.4796224090659; R3y= -7.43014163057972; R3z= 140.239260403532; Ra1= 164.877517021326
+
 xx = np.linspace(0,la,200)
 dy = np.array([])
 dz = np.array([])

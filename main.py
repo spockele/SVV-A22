@@ -41,21 +41,21 @@ la = 1.691
 thetax = np.array([])
 thetaz = np.array([])
 
-for i in np.arange(1,43):
+for i in np.arange(1,Nx):
     thetax = np.append(thetax,np.pi*(i-1)/41)
     
-for i in np.arange(1,83):
+for i in np.arange(1,Nz):
     thetaz = np.append(thetaz,np.pi*(i-1)/81)
 
 zarray = np.array([0])
 xarray = np.array([0])
 #Spanwise
-for i in np.arange(41):
+for i in np.arange(Nx-2):
     xi = 0.5*(la/2*(1-np.cos(thetax[i]))+la/2*(1-np.cos(thetax[i+1])))
     xarray = np.append(xarray,xi)
 xarray = np.append(xarray,la)
 #Chordwise    
-for i in np.arange(81):
+for i in np.arange(Nz-2):
     zi = -0.5*(Ca/2*(1-np.cos(thetaz[i]))+Ca/2*(1-np.cos(thetaz[i+1])))
     zarray = np.append(zarray,zi) 
 zarray = np.append(zarray,-Ca) 
@@ -94,8 +94,8 @@ x, R1z, R2z, R3z, Ra1, R1y, R2y, R3y, C1, C2, C3, C4, C5 = symbols('x R1z R2z R3
 ####################### Calculating the Distribution #########################
 # Unit test for correct center of pressure
 #datalist = np.ones((83,43))
-#xarray = np.arange(0,Ca,Ca/43)
-#zarray = np.arange(0,la,la/83)
+#xarray = np.arange(0,la,la/43)
+#zarray = np.arange(0,Ca,Ca/83)
 
 dq = np.array([])
 dqm = np.array([])
